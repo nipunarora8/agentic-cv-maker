@@ -10,11 +10,14 @@
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <style>
     :root {
       --bg: #07080a;
       --surface: #0f1115;
       --surface2: #13161b;
+      --surface3: #191d24;
       --border: #1e2128;
       --border-bright: #2e3340;
       --text: #e8eaf0;
@@ -25,6 +28,7 @@
       --red: #ff4757;
       --green: #3fb950;
       --orange: #ffa502;
+      --blue: #58a6ff;
     }
 
     *,
@@ -47,7 +51,7 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: linear-gradient(rgba(200, 241, 53, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 241, 53, 0.025) 1px, transparent 1px);
+      background-image: linear-gradient(rgba(200, 241, 53, 0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 241, 53, 0.022) 1px, transparent 1px);
       background-size: 52px 52px;
       pointer-events: none;
       z-index: 0;
@@ -61,7 +65,7 @@
       transform: translateX(-50%);
       width: 900px;
       height: 500px;
-      background: radial-gradient(ellipse, rgba(200, 241, 53, 0.05) 0%, transparent 65%);
+      background: radial-gradient(ellipse, rgba(200, 241, 53, 0.045) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
     }
@@ -71,20 +75,21 @@
       z-index: 1;
       max-width: 860px;
       margin: 0 auto;
-      padding: 4rem 2rem 6rem;
+      padding: 3.5rem 2rem 6rem;
     }
 
+    /* ── header ── */
     header {
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
       animation: fadeUp 0.5s ease both;
     }
 
     .eyebrow {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--accent);
-      margin-bottom: 0.9rem;
+      margin-bottom: 0.8rem;
       display: flex;
       align-items: center;
       gap: 0.6rem;
@@ -92,7 +97,7 @@
 
     .eyebrow::before {
       content: '';
-      width: 20px;
+      width: 18px;
       height: 1px;
       background: var(--accent);
       display: inline-block;
@@ -100,7 +105,7 @@
 
     h1 {
       font-family: 'Syne', sans-serif;
-      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-size: clamp(2rem, 5vw, 3.4rem);
       font-weight: 800;
       line-height: 1.05;
       letter-spacing: -0.025em;
@@ -112,55 +117,129 @@
     }
 
     .subtitle {
-      margin-top: 0.9rem;
-      font-size: 0.8rem;
+      margin-top: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.8;
-      max-width: 520px;
+      max-width: 500px;
     }
 
-    /* ── sections ── */
-    .section-label {
-      font-size: 0.65rem;
+    /* ── section label ── */
+    .slabel {
+      font-size: 0.62rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.55rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.45rem;
     }
 
-    .section-label::before {
+    .slabel::before {
       content: '';
-      width: 12px;
+      width: 10px;
       height: 1px;
       background: var(--muted);
       display: inline-block;
     }
 
-    /* ── config grid ── */
-    .config-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
+    /* ── provider selector ── */
+    .provider-section {
+      margin-bottom: 1.25rem;
       animation: fadeUp 0.5s 0.05s ease both;
     }
 
-    @media (max-width: 600px) {
-      .config-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .config-row {
+    .provider-tabs {
       display: flex;
-      gap: 0.5rem;
+      gap: 0;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
     }
 
-    .config-row.full {
-      grid-column: 1 / -1;
+    .provider-tab {
+      flex: 1;
+      padding: 0.7rem 0.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      line-height: 1;
+    }
+
+    .provider-tab:last-child {
+      border-right: none;
+    }
+
+    .provider-tab .tab-icon {
+      font-size: 1rem;
+    }
+
+    .provider-tab:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .provider-tab.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .provider-tab.active .tab-label {
+      color: var(--accent);
+    }
+
+    /* ── model + key row ── */
+    .model-key-row {
+      display: flex;
+      gap: 0.6rem;
+      animation: fadeUp 0.5s 0.08s ease both;
+      margin-bottom: 1.25rem;
+    }
+
+    select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.62rem 0.85rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555c70'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    select:focus {
+      border-color: rgba(200, 241, 53, 0.35);
+    }
+
+    select option {
+      background: var(--surface2);
+    }
+
+    .key-input-wrap {
+      display: flex;
+      flex: 1.4;
+      gap: 0;
+      min-width: 0;
     }
 
     input[type="password"],
@@ -168,10 +247,11 @@
       flex: 1;
       background: var(--surface);
       border: 1px solid var(--border);
+      border-right: none;
       color: var(--text);
       font-family: 'DM Mono', monospace;
       font-size: 0.75rem;
-      padding: 0.6rem 0.85rem;
+      padding: 0.62rem 0.85rem;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       min-width: 0;
@@ -184,98 +264,122 @@
 
     input:focus {
       border-color: rgba(200, 241, 53, 0.35);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+      z-index: 1;
+      position: relative;
     }
 
-    .save-btn {
+    .save-key-btn {
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      padding: 0.6rem 0.9rem;
+      font-size: 0.7rem;
+      padding: 0.62rem 0.9rem;
       background: var(--surface2);
-      border: 1px solid var(--border-bright);
+      border: 1px solid var(--border);
       color: var(--muted);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.18s;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .save-btn:hover {
+    .save-key-btn:hover {
       border-color: var(--accent);
       color: var(--accent);
     }
 
-    .save-btn.saved {
+    .save-key-btn.saved {
       color: var(--green);
       border-color: var(--green);
+      background: rgba(63, 185, 80, 0.05);
     }
 
-    .save-btn.has-file {
-      color: var(--orange);
-      border-color: var(--orange);
+    /* ── file upload grid ── */
+    .files-section {
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.5s 0.1s ease both;
     }
 
-    /* file upload slots */
-    .file-slot {
+    .files-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    @media (max-width: 580px) {
+      .files-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .file-card {
       background: var(--surface);
       border: 1px dashed var(--border-bright);
-      padding: 0.75rem 1rem;
+      padding: 0.9rem 1rem;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      font-size: 0.72rem;
-      color: var(--muted);
-      flex: 1;
-      min-width: 0;
+      gap: 0.75rem;
       position: relative;
       overflow: hidden;
     }
 
-    .file-slot:hover {
+    .file-card:hover {
       border-color: var(--accent);
-      color: var(--accent);
+      border-style: solid;
     }
 
-    .file-slot.loaded {
+    .file-card.loaded {
       border-color: var(--green);
       border-style: solid;
+      background: rgba(63, 185, 80, 0.04);
+    }
+
+    .file-card.loaded .fc-icon {
       color: var(--green);
     }
 
-    .file-slot.loaded .slot-icon {
-      color: var(--green);
-    }
-
-    .file-slot input[type="file"] {
+    .file-card input[type="file"] {
       position: absolute;
       inset: 0;
       opacity: 0;
       cursor: pointer;
       width: 100%;
+      height: 100%;
     }
 
-    .slot-name {
+    .fc-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      color: var(--border-bright);
+      transition: color 0.2s;
+    }
+
+    .fc-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .fc-title {
+      font-size: 0.72rem;
+      color: var(--text);
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
     }
 
-    .slot-icon {
-      flex-shrink: 0;
-      margin-left: 0.5rem;
-      font-size: 0.8rem;
+    .fc-subtitle {
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
     }
 
-    .clear-btn {
+    .fc-clear {
       flex-shrink: 0;
-      margin-left: 0.4rem;
       font-size: 0.65rem;
-      padding: 0.15em 0.4em;
+      padding: 0.2em 0.45em;
       background: transparent;
-      border: 1px solid var(--border-bright);
+      border: 1px solid var(--border);
       color: var(--muted);
       cursor: pointer;
       transition: all 0.15s;
@@ -283,25 +387,58 @@
       position: relative;
     }
 
-    .clear-btn:hover {
+    .fc-clear:hover {
       border-color: var(--red);
       color: var(--red);
+    }
+
+    /* ── format hint ── */
+    .format-hint {
+      margin-top: 0.5rem;
+      font-size: 0.63rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .fmt-badge {
+      padding: 0.1em 0.45em;
+      border-radius: 2px;
+      font-size: 0.6rem;
+      border: 1px solid var(--border-bright);
+      color: var(--muted);
+    }
+
+    .fmt-badge.tex {
+      border-color: rgba(200, 241, 53, 0.3);
+      color: var(--accent);
+    }
+
+    .fmt-badge.pdf {
+      border-color: rgba(255, 165, 2, 0.3);
+      color: var(--orange);
+    }
+
+    .fmt-badge.doc {
+      border-color: rgba(88, 166, 255, 0.3);
+      color: var(--blue);
     }
 
     /* ── main card ── */
     .card {
       border: 1px solid var(--border);
       background: var(--surface);
-      animation: fadeUp 0.5s 0.1s ease both;
+      animation: fadeUp 0.5s 0.13s ease both;
     }
 
     .card-header {
-      padding: 1rem 1.4rem;
+      padding: 0.9rem 1.4rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--muted);
     }
 
@@ -316,21 +453,21 @@
     }
 
     .dots span {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--border-bright);
     }
 
     .card-body {
-      padding: 1.4rem;
+      padding: 1.3rem;
     }
 
     label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       letter-spacing: 0.13em;
       text-transform: uppercase;
       color: var(--muted);
@@ -341,9 +478,9 @@
       background: var(--accent-dim);
       color: var(--accent);
       border: 1px solid rgba(200, 241, 53, 0.18);
-      padding: 0.1em 0.45em;
+      padding: 0.1em 0.4em;
       border-radius: 2px;
-      font-size: 0.62rem;
+      font-size: 0.6rem;
     }
 
     textarea {
@@ -352,11 +489,11 @@
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       line-height: 1.75;
-      padding: 1rem;
+      padding: 0.9rem;
       resize: vertical;
-      min-height: 220px;
+      min-height: 210px;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
@@ -368,25 +505,25 @@
 
     textarea:focus {
       border-color: rgba(200, 241, 53, 0.35);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      box-shadow: 0 0 0 2px var(--accent-glow);
     }
 
     .meta-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.67rem;
+      font-size: 0.64rem;
       color: var(--muted);
-      margin-top: 0.35rem;
-      margin-bottom: 1.25rem;
+      margin-top: 0.3rem;
+      margin-bottom: 1.2rem;
     }
 
     hr {
       border: none;
       border-top: 1px solid var(--border);
-      margin: 1.25rem 0;
+      margin: 1.2rem 0;
     }
 
-    /* ── button ── */
+    /* ── generate button ── */
     .btn-row {
       display: flex;
       align-items: center;
@@ -398,7 +535,7 @@
       font-weight: 700;
       font-size: 0.85rem;
       letter-spacing: 0.03em;
-      padding: 0.8rem 1.8rem;
+      padding: 0.78rem 1.7rem;
       border: none;
       background: var(--accent);
       color: #07080a;
@@ -431,14 +568,14 @@
     }
 
     .btn-hint {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--muted);
       line-height: 1.6;
     }
 
     /* ── progress ── */
     .progress-wrap {
-      margin-top: 1.25rem;
+      margin-top: 1.2rem;
       display: none;
     }
 
@@ -447,9 +584,9 @@
     }
 
     .progress-label {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--muted);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
       display: flex;
       justify-content: space-between;
     }
@@ -473,17 +610,17 @@
     }
 
     .steps {
-      margin-top: 1rem;
+      margin-top: 0.9rem;
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.3rem;
     }
 
     .step {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 0.72rem;
+      gap: 0.55rem;
+      font-size: 0.7rem;
       color: var(--muted);
       transition: color 0.3s;
     }
@@ -501,14 +638,14 @@
     }
 
     .step-icon {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
       border: 1px solid var(--border-bright);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       flex-shrink: 0;
       transition: all 0.3s;
     }
@@ -516,7 +653,6 @@
     .step.active .step-icon {
       border-color: var(--accent);
       background: var(--accent-dim);
-      color: var(--accent);
     }
 
     .step.done .step-icon {
@@ -532,8 +668,8 @@
     }
 
     .spinner-inline {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border: 1.5px solid var(--border-bright);
       border-top-color: var(--accent);
       border-radius: 50%;
@@ -542,7 +678,7 @@
 
     /* ── downloads ── */
     .downloads {
-      margin-top: 1.5rem;
+      margin-top: 1.4rem;
       border: 1px solid rgba(200, 241, 53, 0.2);
       background: var(--accent-dim);
       display: none;
@@ -553,31 +689,31 @@
     }
 
     .downloads-header {
-      padding: 0.8rem 1.2rem;
+      padding: 0.75rem 1.1rem;
       border-bottom: 1px solid rgba(200, 241, 53, 0.12);
-      font-size: 0.7rem;
+      font-size: 0.67rem;
       color: var(--accent);
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
     .download-list {
-      padding: 0.75rem 1.2rem;
+      padding: 0.65rem 1.1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
 
     .dl-btn {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.55rem 0.8rem;
+      padding: 0.5rem 0.75rem;
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       cursor: pointer;
       transition: all 0.18s;
       text-align: left;
@@ -590,19 +726,19 @@
 
     .dl-btn .dl-size {
       color: var(--muted);
-      font-size: 0.65rem;
+      font-size: 0.62rem;
     }
 
     .dl-all-btn {
-      margin: 0 1.2rem 0.9rem;
-      width: calc(100% - 2.4rem);
-      padding: 0.7rem;
+      margin: 0 1.1rem 0.8rem;
+      width: calc(100% - 2.2rem);
+      padding: 0.65rem;
       background: var(--accent);
       border: none;
       color: #07080a;
       font-family: 'Syne', sans-serif;
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       cursor: pointer;
       transition: opacity 0.18s;
     }
@@ -614,11 +750,11 @@
     /* ── error ── */
     .error-box {
       margin-top: 1rem;
-      padding: 0.85rem 1rem;
+      padding: 0.8rem 1rem;
       background: rgba(255, 71, 87, 0.07);
       border: 1px solid rgba(255, 71, 87, 0.25);
       color: var(--red);
-      font-size: 0.77rem;
+      font-size: 0.74rem;
       display: none;
       line-height: 1.6;
       white-space: pre-wrap;
@@ -628,14 +764,29 @@
       display: block;
     }
 
+    .fmt-warning {
+      margin-top: 0.5rem;
+      padding: 0.6rem 0.9rem;
+      background: rgba(255, 165, 2, 0.07);
+      border: 1px solid rgba(255, 165, 2, 0.2);
+      color: var(--orange);
+      font-size: 0.67rem;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .fmt-warning.show {
+      display: block;
+    }
+
     /* ── footer ── */
     footer {
-      margin-top: 3rem;
-      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      padding-top: 1.25rem;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
-      font-size: 0.67rem;
+      font-size: 0.64rem;
       color: var(--muted);
       animation: fadeUp 0.5s 0.2s ease both;
     }
@@ -643,7 +794,7 @@
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(14px);
+        transform: translateY(12px);
       }
 
       to {
@@ -662,73 +813,71 @@
 
 <body>
 
+  <!-- ── System prompt ── -->
   <script type="text/plain" id="system-prompt">
 # Role: Expert Tech Career Strategist & LaTeX Tailoring Agent
 
 ## Objective
-You are a LaTeX document editor. You receive a base CV and a base cover letter as complete, compilable LaTeX files. Your ONLY job is to edit the text content inside those files to tailor them to the job description. You are NOT generating new documents — you are editing existing ones.
+You are a LaTeX document editor. You receive a base CV and a base cover letter. Your ONLY job is to edit the text content inside those files to tailor them to the job description. You are NOT generating new documents — you are editing existing ones.
 
-## Critical Rule: Preserve LaTeX Structure
+## Critical Rule: Preserve LaTeX Structure Exactly
 - Copy the ENTIRE preamble (everything before \begin{document}) from the base file EXACTLY. Character for character. Do not change a single line of it.
-- Copy ALL \newcommand and \renewcommand definitions EXACTLY as they appear. Never rewrite them.
-- Copy ALL \begin{tabular*} format strings EXACTLY. Never modify the column spec.
-- The only things you are allowed to change are the TEXT CONTENT inside the document body — names of roles, bullet point text, summary paragraph, skills list content, dates if reordering is needed.
-- Never change document structure, section order beyond what is specified, or LaTeX commands.
+- Copy ALL \newcommand and \renewcommand definitions EXACTLY as they appear in the base.
+- Copy ALL \begin{tabular*} format strings EXACTLY. Never modify column specs.
+- The ONLY things you are allowed to change are TEXT CONTENT inside the document body.
 - Never introduce new LaTeX packages or commands not already in the base file.
+- Never truncate, summarize, or shorten any part of the LaTeX structure.
+
+## If Base Files Are Not LaTeX
+If the base CV or cover letter was provided as a PDF or Word document (not LaTeX), you must:
+1. Analyze the visual structure, fonts, spacing, and layout from the document content.
+2. Recreate the formatting as accurately as possible in standard LaTeX using article class.
+3. Then tailor the content to the JD.
+4. For cover letters without LaTeX formatting: use a clean, professional letter.cls layout.
 
 ## The Goal: Genuine Relevance + Honest Positioning
-Map the user's real experience to the JD's actual needs. Do NOT stuff keywords. Surface the most relevant true work and frame it in the JD's vocabulary only where the mapping is honest.
-
 - Do NOT invent or hallucinate new projects, degrees, or jobs.
-- DO reframe, reorder, and emphasize existing work to mirror the JD's keywords where true and defensible.
+- DO reframe and emphasize existing work to mirror the JD's keywords where true and defensible.
 - Every claim must be something the user can speak to confidently in an interview.
-- All jobs, projects, and degrees must remain in chronological descending order (latest first).
-
-## Inputs
-- company_name: provided
-- job_title: provided
-- job_description: provided
-- base_cv: complete LaTeX CV file
-- base_cover_letter: complete LaTeX cover letter file
+- Chronological descending order always (latest first).
 
 ## What to change in the CV
-1. Professional Profile: rewrite the summary paragraph text only.
-2. Core Technical Skills: reorder and reword the skill line text only. Do not add skills that are not in the base file.
-3. Projects & Experience bullet points: rewrite bullet text only. Move the most relevant entries to the top of their section by reordering the \resumeSubheading blocks. Never change the \resumeSubheading command itself.
-4. Do not touch Education, Publications, Additional Information unless a minor text tweak is needed.
-5. CV must not exceed two pages.
+1. Professional Profile: rewrite summary paragraph text only.
+2. Core Technical Skills: reorder and reword skill line text only. Never add skills not in the base.
+3. Bullet points: rewrite text only. Move most relevant \resumeSubheading blocks to the top.
+4. CV must not exceed two pages.
 
 ## What to change in the Cover Letter
-1. Update recipient name, company name, date, and subject line text only.
-2. Rewrite the opening paragraph, body paragraphs, and closing paragraph text only.
-3. Do not change any LaTeX formatting commands, spacing, or structure.
+1. Update recipient, company name, date, subject line.
+2. Rewrite opening, body paragraphs, closing — text only.
+3. Never change LaTeX formatting commands.
 4. Must not exceed one page.
 
 ## Interview Prep Guide (Markdown)
 Informal, direct, for the user's eyes only.
 
 ### The Vibe Check
-What does this company actually care about? Read between the lines of the JD.
+What does this company actually care about? Read between the lines.
 
 ### Your Flexes
-Map specific projects to JD requirements. Be explicit:
-Example: "When they ask about edge deployment, hit them with the SynergyLabs Jetson project."
+Map specific projects/experience to JD requirements. Be explicit and ready-to-use.
 
 ### Honest Gaps
-Distinguish closeable gaps (2-3 days of study) from structural gaps (missing years, tools never touched). For structural gaps, suggest how to address them proactively in the interview.
+- Closeable gaps (2-3 days study): exact concepts + resource.
+- Structural gaps: how to address proactively in interview.
 
 ### Mock Questions
-3-5 specific technical questions likely to come up. For each: why they will ask it, and key points for a strong answer.
+3-5 specific technical questions likely to come up. For each: why they'll ask it + key points for a strong answer.
 
 ## Output Format
-Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, no text after </prep_guide>.
+Respond with EXACTLY three tagged blocks, nothing else — no text before <cv> or after </prep_guide>:
 
 <cv>
-[complete tailored LaTeX CV - full file from \documentclass to \end{document}]
+[complete tailored LaTeX CV — full file from \documentclass to \end{document}]
 </cv>
 
 <cover_letter>
-[complete tailored LaTeX cover letter - full file from \documentclass to \end{document}]
+[complete tailored LaTeX cover letter — full file from \documentclass to \end{document}]
 </cover_letter>
 
 <prep_guide>
@@ -736,10 +885,9 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
 </prep_guide>
 
 ## Absolute Rules
-- Output must be the complete file each time, from \documentclass to \end{document}.
-- The preamble must be copied byte-for-byte from the base file. If you are unsure, copy it again.
-- Never truncate, summarize, or shorten any part of the LaTeX outside the specific text changes listed above.
-- Valid LaTeX only. Escape special characters: % & $ # _
+- Complete file every time, from \documentclass to \end{document}.
+- Preamble must be copied byte-for-byte from base. If unsure, copy it again.
+- Valid LaTeX only. Escape: % & $ # _
 - No fabrication. No hallucination.
 - Metrics are sacred: never remove or weaken a quantified result.
 </script>
@@ -749,45 +897,81 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
     <header>
       <div class="eyebrow">Career Automation</div>
       <h1>Ship your<br><em>application.</em></h1>
-      <p class="subtitle">Paste a job description. Gemini tailors your CV and cover letter, compiles PDFs, and hands
-        everything back as a ZIP — all in the browser.</p>
+      <p class="subtitle">Paste a job description. Your chosen AI tailors your CV and cover letter, compiles PDFs, and
+        hands everything back as a ZIP — all in the browser.</p>
     </header>
 
-    <!-- Config -->
-    <div style="animation: fadeUp 0.5s 0.05s ease both;">
-      <div class="section-label">Configuration</div>
-      <div class="config-grid">
-
-        <!-- Gemini key -->
-        <div class="config-row full">
-          <input type="password" id="api-key" placeholder="Gemini API key — saved to localStorage" />
-          <button class="save-btn" id="api-save-btn" onclick="saveApiKey()">Save key</button>
-        </div>
-
-        <!-- Base CV -->
-        <div class="config-row">
-          <div class="file-slot" id="cv-slot">
-            <input type="file" id="cv-file-input" accept=".tex" onchange="loadFile('cv')" />
-            <span class="slot-name" id="cv-slot-name">&#8593; Upload base_cv.tex</span>
-            <span class="slot-icon">&#9711;</span>
-          </div>
-          <button class="clear-btn" onclick="clearFile('cv')" title="Clear">&#10005;</button>
-        </div>
-
-        <!-- Base Cover Letter -->
-        <div class="config-row">
-          <div class="file-slot" id="cl-slot">
-            <input type="file" id="cl-file-input" accept=".tex" onchange="loadFile('cl')" />
-            <span class="slot-name" id="cl-slot-name">&#8593; Upload base_cover.tex</span>
-            <span class="slot-icon">&#9711;</span>
-          </div>
-          <button class="clear-btn" onclick="clearFile('cl')" title="Clear">&#10005;</button>
-        </div>
-
+    <!-- ── Provider selector ── -->
+    <div class="provider-section">
+      <div class="slabel">AI Provider</div>
+      <div class="provider-tabs">
+        <button class="provider-tab active" id="tab-gemini" onclick="setProvider('gemini')">
+          <span class="tab-icon">✦</span>
+          <span class="tab-label">Gemini</span>
+        </button>
+        <button class="provider-tab" id="tab-openai" onclick="setProvider('openai')">
+          <span class="tab-icon">⬡</span>
+          <span class="tab-label">OpenAI</span>
+        </button>
+        <button class="provider-tab" id="tab-anthropic" onclick="setProvider('anthropic')">
+          <span class="tab-icon">◈</span>
+          <span class="tab-label">Anthropic</span>
+        </button>
       </div>
     </div>
 
-    <!-- Main card -->
+    <!-- ── Model + API key ── -->
+    <div class="model-key-row">
+      <select id="model-select" onchange="saveModelChoice()"></select>
+      <div class="key-input-wrap">
+        <input type="password" id="api-key" placeholder="API key — saved to localStorage" />
+        <button class="save-key-btn" id="save-key-btn" onclick="saveKey()">Save</button>
+      </div>
+    </div>
+
+    <!-- ── File upload ── -->
+    <div class="files-section">
+      <div class="slabel">Base Documents</div>
+      <div class="files-grid">
+
+        <div>
+          <div class="file-card" id="cv-card">
+            <input type="file" id="cv-input" accept=".tex" onchange="loadFile('cv')" />
+            <span class="fc-icon" id="cv-icon">📄</span>
+            <div class="fc-text">
+              <div class="fc-title" id="cv-title">Upload Base CV</div>
+              <div class="fc-subtitle" id="cv-sub">Your master resume file</div>
+            </div>
+            <button class="fc-clear" onclick="clearFile(event,'cv')" title="Clear">✕</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="file-card" id="cl-card">
+            <input type="file" id="cl-input" accept=".tex" onchange="loadFile('cl')" />
+            <span class="fc-icon" id="cl-icon">✉</span>
+            <div class="fc-text">
+              <div class="fc-title" id="cl-title">Upload Base Cover Letter</div>
+              <div class="fc-subtitle" id="cl-sub">Your master cover letter</div>
+            </div>
+            <button class="fc-clear" onclick="clearFile(event,'cl')" title="Clear">✕</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="fmt-warning" id="fmt-warning">
+        ⚠ PDF/DOC detected — text content will be preserved but formatting cannot be inferred from binary files. For
+        exact layout preservation, use <strong>.tex</strong>.
+      </div>
+
+      <div class="format-hint">
+        Accepted format: <span class="fmt-badge tex">.tex</span>
+        &nbsp;— LaTeX only, ensures exact formatting preservation
+      </div>
+    </div>
+
+    <!-- ── JD card ── -->
     <div class="card">
       <div class="card-header">
         <div class="dots"><span></span><span></span><span></span></div>
@@ -808,7 +992,7 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
         <div class="btn-row">
           <button class="primary" id="gen-btn" onclick="generate()">&#9889; Generate</button>
           <span class="btn-hint">
-            Calls Gemini directly from your browser.<br>
+            Calls your chosen AI directly from the browser.<br>
             Downloads CV, cover letter &amp; prep guide as ZIP.
           </span>
         </div>
@@ -851,106 +1035,184 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
     </div>
 
     <footer>
-      <span>agentic cv maker</span>
-      <span>gemini &#183; latexonline.cc</span>
+      <span>agentic cv maker — open source</span>
+      <span id="footer-provider">gemini &#183; latexonline.cc</span>
     </footer>
 
   </div>
 
   <script>
-    const GEMINI_MODEL_MAIN = "gemini-3-flash-preview";
-    const GEMINI_MODEL_FAST = "gemini-flash-lite-latest";
-
-    // default URLs — fetched if no file uploaded
-    const DEFAULT_CV_URL = "https://raw.githubusercontent.com/nipunarora8/agentic-cv-maker/main/base_cv.tex";
-    const DEFAULT_CL_URL = "https://raw.githubusercontent.com/nipunarora8/agentic-cv-maker/main/base_cover.tex";
-
-    const SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
-    let outputFiles = {};
-
-    // ── on load ──────────────────────────────────────────────────
-    window.addEventListener("DOMContentLoaded", function () {
-      var key = localStorage.getItem("gemini_api_key");
-      if (key) {
-        document.getElementById("api-key").value = key;
-        setBtn("api-save-btn", "saved", "✓ Saved");
+    // ── Provider config ──────────────────────────────────────────
+    var PROVIDERS = {
+      gemini: {
+        name: "Gemini",
+        models: [
+          { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (best)" },
+          { id: "gemini-3-flash-preview", label: "Gemini 3.0 Flash (fast)" },
+          { id: "gemini-flash-lite-latest", label: "Gemini Flash Lite (cheap)" }
+        ],
+        keyPlaceholder: "AIza... — Google AI Studio key"
+      },
+      openai: {
+        name: "OpenAI",
+        models: [
+          { id: "gpt-5.4-2026-03-05", label: "GPT-5.4 (best)" },
+          { id: "gpt-5.4-mini-2026-03-17", label: "GPT-5.4 mini (fast)" },
+          { id: "gpt-5.4-nano-2026-03-17", label: "GPT-5.4 nano (fast)" }
+        ],
+        keyPlaceholder: "sk-... — OpenAI API key"
+      },
+      anthropic: {
+        name: "Anthropic",
+        models: [
+          { id: "claude-opus-4-6", label: "Claude Opus 4 (best)" },
+          { id: "claude-sonnet-4-6", label: "Claude Sonnet 4 (balanced)" },
+          { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4 (fast)" }
+        ],
+        keyPlaceholder: "sk-ant-... — Anthropic API key"
       }
+    };
+
+    var currentProvider = "gemini";
+    var SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
+    var outputFiles = {};
+
+    // ── Init ─────────────────────────────────────────────────────
+    window.addEventListener("DOMContentLoaded", function () {
+      var savedProvider = localStorage.getItem("cv_provider") || "gemini";
+      setProvider(savedProvider, true);
       restoreFile("cv");
       restoreFile("cl");
+
+      var jdEl = document.getElementById("jd");
+      jdEl.addEventListener("input", function () {
+        var t = jdEl.value.trim();
+        document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
+        document.getElementById("cc").textContent = jdEl.value.length + " chars";
+      });
     });
 
-    // ── api key ──────────────────────────────────────────────────
-    function saveApiKey() {
-      var key = document.getElementById("api-key").value.trim();
-      if (!key) return;
-      localStorage.setItem("gemini_api_key", key);
-      setBtn("api-save-btn", "saved", "✓ Saved");
+    // ── Provider switching ───────────────────────────────────────
+    function setProvider(p, silent) {
+      currentProvider = p;
+      if (!silent) localStorage.setItem("cv_provider", p);
+
+      // update tabs
+      Object.keys(PROVIDERS).forEach(function (key) {
+        document.getElementById("tab-" + key).classList.toggle("active", key === p);
+      });
+
+      // update model dropdown
+      var sel = document.getElementById("model-select");
+      sel.innerHTML = "";
+      PROVIDERS[p].models.forEach(function (m) {
+        var opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.label;
+        sel.appendChild(opt);
+      });
+
+      // restore saved model
+      var savedModel = localStorage.getItem("cv_model_" + p);
+      if (savedModel) sel.value = savedModel;
+
+      // restore key
+      var savedKey = localStorage.getItem("cv_key_" + p) || "";
+      document.getElementById("api-key").value = savedKey;
+      document.getElementById("api-key").placeholder = PROVIDERS[p].keyPlaceholder;
+
+      var saveBtn = document.getElementById("save-key-btn");
+      if (savedKey) {
+        saveBtn.textContent = "✓ Saved";
+        saveBtn.classList.add("saved");
+      } else {
+        saveBtn.textContent = "Save";
+        saveBtn.classList.remove("saved");
+      }
+
+      document.getElementById("footer-provider").textContent = PROVIDERS[p].name.toLowerCase() + " · latexonline.cc";
     }
 
-    // ── file handling ────────────────────────────────────────────
+    function saveModelChoice() {
+      var model = document.getElementById("model-select").value;
+      localStorage.setItem("cv_model_" + currentProvider, model);
+    }
+
+    function saveKey() {
+      var key = document.getElementById("api-key").value.trim();
+      if (!key) return;
+      localStorage.setItem("cv_key_" + currentProvider, key);
+      var btn = document.getElementById("save-key-btn");
+      btn.textContent = "✓ Saved";
+      btn.classList.add("saved");
+    }
+
+    // ── File handling ────────────────────────────────────────────
     function loadFile(type) {
-      var inputId = type === "cv" ? "cv-file-input" : "cl-file-input";
+      var inputId = type + "-input";
       var file = document.getElementById(inputId).files[0];
       if (!file) return;
+      var ext = file.name.split(".").pop().toLowerCase();
+      if (ext !== "tex") { showError("Only .tex files are accepted."); return; }
       var reader = new FileReader();
       reader.onload = function (e) {
-        localStorage.setItem("base_" + type, e.target.result);
+        localStorage.setItem("base_" + type + "_content", e.target.result);
         localStorage.setItem("base_" + type + "_name", file.name);
-        updateFileSlot(type, file.name);
+        localStorage.setItem("base_" + type + "_ext", "tex");
+        localStorage.setItem("base_" + type + "_type", "text");
+        updateFileCard(type, file.name, "tex");
       };
       reader.readAsText(file);
     }
 
     function restoreFile(type) {
-      var content = localStorage.getItem("base_" + type);
       var name = localStorage.getItem("base_" + type + "_name");
-      if (content && name) updateFileSlot(type, name);
+      var ext = localStorage.getItem("base_" + type + "_ext");
+      if (name) updateFileCard(type, name, ext);
     }
 
-    function clearFile(type) {
-      localStorage.removeItem("base_" + type);
-      localStorage.removeItem("base_" + type + "_name");
-      var slotId = type === "cv" ? "cv-slot" : "cl-slot";
-      var nameId = type === "cv" ? "cv-slot-name" : "cl-slot-name";
-      var inputId = type === "cv" ? "cv-file-input" : "cl-file-input";
-      var defaultText = type === "cv" ? "↑ Upload base_cv.tex" : "↑ Upload base_cover.tex";
-      document.getElementById(slotId).classList.remove("loaded");
-      document.getElementById(nameId).textContent = defaultText;
-      document.getElementById(inputId).value = "";
+    function clearFile(e, type) {
+      e.preventDefault();
+      e.stopPropagation();
+      ["_content", "_name", "_ext", "_type"].forEach(function (k) {
+        localStorage.removeItem("base_" + type + k);
+      });
+      document.getElementById(type + "-card").classList.remove("loaded");
+      document.getElementById(type + "-icon").textContent = type === "cv" ? "📄" : "✉";
+      document.getElementById(type + "-title").textContent = type === "cv" ? "Upload Base CV" : "Upload Base Cover Letter";
+      document.getElementById(type + "-sub").textContent = type === "cv" ? "Your master resume file" : "Your master cover letter";
+      document.getElementById(type + "-input").value = "";
     }
 
-    function updateFileSlot(type, name) {
-      var slotId = type === "cv" ? "cv-slot" : "cl-slot";
-      var nameId = type === "cv" ? "cv-slot-name" : "cl-slot-name";
-      document.getElementById(slotId).classList.add("loaded");
-      document.getElementById(nameId).textContent = "✓ " + name;
-    }
+    function updateFileCard(type, name, ext) {
+      var icons = { tex: "📝", pdf: "📕", doc: "📘", docx: "📘" };
+      document.getElementById(type + "-card").classList.add("loaded");
+      document.getElementById(type + "-icon").textContent = icons[ext] || "📄";
+      document.getElementById(type + "-title").textContent = "✓ " + name;
+      document.getElementById(type + "-sub").textContent = ext === "tex"
+        ? "LaTeX — full formatting preserved"
+        : ext.toUpperCase() + " — text extracted, clean LaTeX template applied";
 
-    async function getBaseFiles() {
-      var cvContent = localStorage.getItem("base_cv");
-      var clContent = localStorage.getItem("base_cl");
-
-      // fall back to fetching from GitHub if not uploaded
-      if (!cvContent) {
-        var r = await fetch(DEFAULT_CV_URL);
-        if (!r.ok) throw new Error("Could not fetch base_cv.tex. Please upload it manually.");
-        cvContent = await r.text();
+      // show warning if any non-tex file is loaded
+      var cvExt = localStorage.getItem("base_cv_ext") || "tex";
+      var clExt = localStorage.getItem("base_cl_ext") || "tex";
+      var warn = document.getElementById("fmt-warning");
+      if (cvExt !== "tex" || clExt !== "tex") {
+        warn.classList.add("show");
+      } else {
+        warn.classList.remove("show");
       }
-      if (!clContent) {
-        var r2 = await fetch(DEFAULT_CL_URL);
-        if (!r2.ok) throw new Error("Could not fetch base_cover.tex. Please upload it manually.");
-        clContent = await r2.text();
-      }
-      return { baseCv: cvContent, baseCl: clContent };
     }
 
-    // ── helpers ──────────────────────────────────────────────────
-    function setBtn(id, cls, text) {
-      var btn = document.getElementById(id);
-      btn.className = "save-btn " + cls;
-      btn.textContent = text;
+    function getFileForPrompt(type) {
+      var content = localStorage.getItem("base_" + type + "_content");
+      var name = localStorage.getItem("base_" + type + "_name");
+      var ext = localStorage.getItem("base_" + type + "_ext") || "tex";
+      var ftype = localStorage.getItem("base_" + type + "_type") || "text";
+      return { content: content, name: name, ext: ext, ftype: ftype };
     }
 
+    // ── UI helpers ───────────────────────────────────────────────
     function setProgress(pct, label) {
       document.getElementById("progress-fill").style.width = pct + "%";
       document.getElementById("progress-pct").textContent = pct + "%";
@@ -961,13 +1223,9 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
       var el = document.getElementById(id);
       el.className = "step " + state;
       var icon = el.querySelector(".step-icon");
-      if (state === "active") {
-        icon.innerHTML = '<div class="spinner-inline"></div>';
-      } else if (state === "done") {
-        icon.textContent = "✓";
-      } else if (state === "error") {
-        icon.textContent = "✗";
-      }
+      if (state === "active") icon.innerHTML = '<div class="spinner-inline"></div>';
+      else if (state === "done") icon.textContent = "✓";
+      else if (state === "error") icon.textContent = "✗";
     }
 
     function showError(msg) {
@@ -979,20 +1237,31 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
     function extractBlock(text, tag) {
       var re = new RegExp("<" + tag + ">([\\s\\S]*?)<\\/" + tag + ">");
       var m = text.match(re);
-      if (!m) throw new Error("Model did not return a <" + tag + "> block. Raw response:\n" + text.slice(0, 600));
+      if (!m) throw new Error("Model did not return a <" + tag + "> block.\n\nRaw response start:\n" + text.slice(0, 600));
       return m[1].trim();
     }
 
-    // ── gemini ───────────────────────────────────────────────────
-    async function callGemini(apiKey, model, systemInstruction, userPrompt) {
+    // ── AI call (multi-provider) ─────────────────────────────────
+    async function callAI(apiKey, model, systemPrompt, userPrompt) {
+      if (currentProvider === "gemini") {
+        return await callGemini(apiKey, model, systemPrompt, userPrompt);
+      } else if (currentProvider === "openai") {
+        return await callOpenAI(apiKey, model, systemPrompt, userPrompt);
+      } else if (currentProvider === "anthropic") {
+        return await callAnthropic(apiKey, model, systemPrompt, userPrompt);
+      }
+      throw new Error("Unknown provider: " + currentProvider);
+    }
+
+    async function callGemini(apiKey, model, sys, user) {
       var res = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
           body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemInstruction }] },
-            contents: [{ parts: [{ text: userPrompt }] }],
+            system_instruction: { parts: [{ text: sys }] },
+            contents: [{ parts: [{ text: user }] }],
             generationConfig: { temperature: 0.2 }
           })
         }
@@ -1005,7 +1274,74 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
       return data.candidates[0].content.parts[0].text;
     }
 
-    // ── latex compile ────────────────────────────────────────────
+    async function callOpenAI(apiKey, model, sys, user) {
+      var res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: model,
+          temperature: 0.2,
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: user }
+          ]
+        })
+      });
+      if (!res.ok) {
+        var err = await res.json();
+        throw new Error(err.error && err.error.message ? err.error.message : "OpenAI HTTP " + res.status);
+      }
+      var data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    async function callAnthropic(apiKey, model, sys, user) {
+      var res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: 8192,
+          system: sys,
+          messages: [{ role: "user", content: user }]
+        })
+      });
+      if (!res.ok) {
+        var err = await res.json();
+        throw new Error(err.error && err.error.message ? err.error.message : "Anthropic HTTP " + res.status);
+      }
+      var data = await res.json();
+      return data.content[0].text;
+    }
+
+    // ── Build prompt with file content ───────────────────────────
+    function buildFileSection(label, fileData) {
+      if (!fileData.content) return "\nNo " + label + " provided.\n";
+
+      var isTex = fileData.ext === "tex";
+
+      if (isTex) {
+        return "\n<" + label + " format=\"tex\">\n" + fileData.content + "\n</" + label + ">\n";
+      } else {
+        // extracted text from PDF/DOC — use content, apply clean template
+        return "\n<" + label + " format=\"extracted_text\" source=\"" + fileData.ext + "\">\n" +
+          "The following is text extracted from a " + fileData.ext.toUpperCase() + " file. " +
+          "Use a clean standard LaTeX article template. " +
+          "Populate it with ONLY the factual content below — do not invent, omit, or change any names, dates, institutions, or results.\n\n" +
+          fileData.content +
+          "\n</" + label + ">\n";
+      }
+    }
+
+    // ── LaTeX compile ────────────────────────────────────────────
     async function compileTex(texContent, filename) {
       var res = await fetch("https://latex.ytotech.com/builds/sync", {
         method: "POST",
@@ -1017,18 +1353,18 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
       });
       if (!res.ok) {
         var data = await res.json();
-        var log = data.log_files && data.log_files["__main_document__.log"] ? data.log_files["__main_document__.log"] : "";
+        var log = (data.log_files && data.log_files["__main_document__.log"]) ? data.log_files["__main_document__.log"] : "";
         var errorLine = "";
         var lines = log.split("\n");
         for (var i = 0; i < lines.length; i++) {
           if (lines[i].indexOf("!") === 0) { errorLine = lines[i]; break; }
         }
-        throw new Error("LaTeX compile failed for " + filename + ":\n" + (errorLine || log.slice(0, 400)));
+        throw new Error("LaTeX compile failed for " + filename + ":\n" + log.slice(0, 3000));
       }
       return await res.blob();
     }
 
-    // ── download button ──────────────────────────────────────────
+    // ── Download button ──────────────────────────────────────────
     function addDownloadButton(filename, blob) {
       outputFiles[filename] = blob;
       var size = blob.size > 1024 ? (blob.size / 1024).toFixed(1) + " KB" : blob.size + " B";
@@ -1044,13 +1380,18 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
       document.getElementById("dl-list").appendChild(btn);
     }
 
-    // ── main ─────────────────────────────────────────────────────
+    // ── Main generate ────────────────────────────────────────────
     async function generate() {
       var apiKey = document.getElementById("api-key").value.trim();
+      var model = document.getElementById("model-select").value;
       var jd = document.getElementById("jd").value.trim();
 
-      if (!apiKey) { showError("Add your Gemini API key first."); return; }
+      if (!apiKey) { showError("Add your " + PROVIDERS[currentProvider].name + " API key first."); return; }
       if (!jd) { showError("Paste a job description first."); return; }
+
+      var cvFile = getFileForPrompt("cv");
+      var clFile = getFileForPrompt("cl");
+      if (!cvFile.content) { showError("Upload your base CV file first."); return; }
 
       // reset UI
       document.getElementById("error-box").classList.remove("show");
@@ -1070,34 +1411,37 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
         // 1 — extract meta
         setStep("step-meta", "active");
         setProgress(5, "Extracting company & job title...");
-        var metaText = await callGemini(
-          apiKey, GEMINI_MODEL_FAST,
+
+        var metaText = await callAI(
+          apiKey, model,
           "You are a precise metadata extractor. Respond only with the requested XML tags, no other text.",
-          "Extract the company name and job title from this job description.\nRespond with ONLY these two tags:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
+          "Extract the company name and job title from this job description.\nRespond with ONLY:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
         );
         var companyName = extractBlock(metaText, "company");
         var jobTitle = extractBlock(metaText, "job_title");
         document.getElementById("detected").textContent = "detected: " + companyName + " — " + jobTitle;
         setStep("step-meta", "done");
 
-        // 1.5 — fetch base files
-        setProgress(12, "Loading base CV and cover letter...");
-        var bases = await getBaseFiles();
-
         // 2 — generate
         setStep("step-gen", "active");
-        setProgress(20, "Tailoring documents...");
+        setProgress(20, "Tailoring documents with " + PROVIDERS[currentProvider].name + "...");
+
+        var cvSection = buildFileSection("base_cv", cvFile);
+        var clSection = clFile.content
+          ? buildFileSection("base_cover_letter", clFile)
+          : "\n<base_cover_letter>\nNone provided — use a clean professional letter.cls layout.\n</base_cover_letter>\n";
 
         var genPrompt =
           "company_name: " + companyName + "\n" +
           "job_title: " + jobTitle + "\n\n" +
-          "<job_description>\n" + jd + "\n</job_description>\n\n" +
-          "<base_cv>\n" + bases.baseCv + "\n</base_cv>\n\n" +
-          "<base_cover_letter>\n" + bases.baseCl + "\n</base_cover_letter>\n\n" +
-          "Now produce the three tagged blocks. The <cv> and <cover_letter> blocks must be complete LaTeX files " +
-          "with the preamble copied EXACTLY from the base files above — do not change a single character of the preamble.";
+          "<job_description>\n" + jd + "\n</job_description>\n" +
+          cvSection + clSection +
+          "\nNow produce the three tagged blocks. For <cv> and <cover_letter>: " +
+          "if base files are LaTeX, copy the preamble EXACTLY character for character. " +
+          "If base files are PDF/DOC, faithfully recreate the visual layout in LaTeX. " +
+          "Only edit text content to match the job description.";
 
-        var genText = await callGemini(apiKey, GEMINI_MODEL_MAIN, SYSTEM_PROMPT, genPrompt);
+        var genText = await callAI(apiKey, model, SYSTEM_PROMPT, genPrompt);
 
         var cvTex = extractBlock(genText, "cv");
         var clTex = extractBlock(genText, "cover_letter");
@@ -1105,10 +1449,10 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
 
         var cap = companyName.replace(/\s+/g, "_");
         var folderKey = companyName.replace(/\s+/g, "_") + "_" + jobTitle.replace(/\s+/g, "_");
-        var cvTexName = "CV_Nipun_Arora_" + cap + ".tex";
-        var clTexName = "Cover_Nipun_Arora_" + cap + ".tex";
-        var cvPdfName = "CV_Nipun_Arora_" + cap + ".pdf";
-        var clPdfName = "Cover_Nipun_Arora_" + cap + ".pdf";
+        var cvTexName = "CV_" + cap + ".tex";
+        var clTexName = "Cover_" + cap + ".tex";
+        var cvPdfName = "CV_" + cap + ".pdf";
+        var clPdfName = "Cover_" + cap + ".pdf";
         var prepName = "Interview_Prep_" + cap + ".md";
 
         addDownloadButton(cvTexName, new Blob([cvTex], { type: "text/plain" }));
@@ -1155,16 +1499,6 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
         document.getElementById("gen-btn").disabled = false;
       }
     }
-
-    // word count
-    document.addEventListener("DOMContentLoaded", function () {
-      var jdEl = document.getElementById("jd");
-      jdEl.addEventListener("input", function () {
-        var t = jdEl.value.trim();
-        document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
-        document.getElementById("cc").textContent = jdEl.value.length + " chars";
-      });
-    });
   </script>
 </body>
 
