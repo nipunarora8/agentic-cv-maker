@@ -1,155 +1,131 @@
-# ⚡ AI Job Application Generator
+# ⚡ Agentic CV Maker
 
-> Paste a job description. Get a tailored CV, cover letter, and interview prep guide — committed directly to your repo.
+> Paste a job description. Get a tailored CV, cover letter, and interview prep guide — compiled to PDF, downloaded as a ZIP, entirely in your browser.
 
 ![App Screenshot](docs/screenshot.png)
+
+**[→ Try it live](https://nipunarora8.github.io/agentic-cv-maker)**
 
 ---
 
 ## How it works
 
-1. You open the web UI (hosted on GitHub Pages)
-2. Paste a job description — company name and job title are **extracted automatically**
-3. A GitHub Actions workflow fires, running a Gemini agent that:
-   - Tailors your CV and cover letter to the JD (honestly — no hallucination)
-   - Generates a personal interview prep guide with gap analysis and mock questions
-   - Compiles everything to PDF via LaTeX
-   - Commits the output folder back to your repo
+Everything runs in the browser — no backend, no server, no data sent anywhere except directly to Google's Gemini API with your own key.
+
+1. Upload your `base_cv.tex` and `base_cover_letter.tex` (saved to localStorage — persists across sessions)
+2. Paste a job description — company name and job title are extracted automatically
+3. Gemini tailors your CV and cover letter by editing your existing LaTeX files, not generating new ones
+4. PDFs are compiled via [latex.ytotech.com](https://latex.ytotech.com)
+5. Everything is packaged into a ZIP and downloaded directly to your machine
 
 ```
-your-repo/
-├── company_jobtitle/
-│   ├── CV_YourName_Company.tex
-│   ├── CV_YourName_Company.pdf
-│   ├── Cover_YourName_Company.tex
-│   ├── Cover_YourName_Company.pdf
-│   └── Interview_Prep_Company.md
+YourDownloads/
+└── Company_Job_Title/
+    ├── CV_YourName_Company.tex
+    ├── CV_YourName_Company.pdf
+    ├── Cover_YourName_Company.tex
+    ├── Cover_YourName_Company.pdf
+    └── Interview_Prep_Company.md
 ```
+
+---
+
+## What Gemini actually does
+
+The agent is designed around **honest positioning** — it edits your real experience to match the JD, it does not fabricate.
+
+- Rewrites your professional summary to address the company's core problem
+- Reorders and reframes bullet points using the JD's vocabulary, only where the mapping is true
+- Reorders the most relevant projects to the top
+- Flags any stretch claims in the prep guide so you know what to prepare for
+- Generates a full interview prep guide: vibe check, your best talking points, honest gap analysis, and mock questions
 
 ---
 
 ## Stack
 
-| Layer | Tool |
+| | |
 |---|---|
-| AI Agent | Google Gemini 3 Flash |
-| CV / Cover Letter | LaTeX → PDF via `texlive` |
-| CI/CD | GitHub Actions |
-| Frontend | GitHub Pages (plain HTML) |
+| AI | Google Gemini (via REST API) |
+| LaTeX compilation | [latex.ytotech.com](https://latex.ytotech.com) (free) |
+| Frontend | Plain HTML — GitHub Pages |
+| Storage | Browser localStorage only |
 
 ---
 
-## Setup (fork this repo first)
+## Setup
 
-> **Important:** Fork this repo as **private** before adding any secrets or personal files. Do not add your CV or API keys to a public repo.
+### 1. Fork this repo
 
-### 1. Add your base files
+Click **Fork** at the top right. Keep it public to use GitHub Pages for free.
 
-Replace the placeholder files in the root of your repo:
+### 2. Enable GitHub Pages
 
-| File | What it is |
-|---|---|
-| `base_cv.tex` | Your master CV in LaTeX format |
-| `base_cover_letter.tex` | Your master cover letter in LaTeX format |
-| `compile.py` | Your LaTeX → PDF compilation script (see below) |
+Repo → **Settings → Pages** → Source: `Deploy from a branch` → Branch: `main`, folder: `/docs`
 
-Your `compile.py` must accept `--input` and `--output` arguments:
-
-```bash
-python compile.py --input path/to/file.tex --output path/to/file.pdf
+Your app will be live at:
+```
+https://your_github_username.github.io/agentic-cv-maker
 ```
 
-### 2. Add GitHub Secrets
+### 3. Get a Gemini API key
 
-Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**:
+Go to [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) and create a free key. It starts with `AIza...`
 
-| Secret | Where to get it |
-|---|---|
-| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| `GH_PAT` | [github.com/settings/tokens](https://github.com/settings/tokens) — needs `repo` + `workflow` scopes |
+### 4. Open the app and configure
 
-### 3. Configure the web UI
+1. Paste your Gemini API key → click **Save key**
+2. Upload your `base_cv.tex` → click the CV slot
+3. Upload your `base_cover_letter.tex` → click the cover letter slot
 
-Open `docs/index.html` and replace these three lines near the bottom of the `<script>` block:
+Both files are saved to your browser's localStorage. You only need to do this once.
 
-```js
-const GITHUB_TOKEN = "your_pat_here";      // your GH_PAT
-const REPO_OWNER   = "your_github_username";
-const REPO_NAME    = "your_repo_name";
-```
+### 5. Use it
 
-### 4. Enable GitHub Pages
-
-Go to your repo → **Settings → Pages**:
-- Source: `Deploy from a branch`
-- Branch: `main`, folder: `/docs`
-
-### 5. Paste your system prompt into `agent.py`
-
-Open `agent.py` and paste your full career agent instructions into the `SYSTEM_PROMPT` constant at the top. A template prompt is included — customize it with your name, background, and preferences.
-
-### 6. Commit and push
-
-```bash
-git add .
-git commit -m "feat: init application generator"
-git push
-```
-
-That's it. Your GitHub Pages URL will be available at:
-```
-https://your_github_username.github.io/your_repo_name
-```
+1. Paste a job description into the textarea
+2. Click **⚡ Generate**
+3. Wait ~60–90 seconds
+4. Download individual files or click **Download all as ZIP**
 
 ---
 
-## Usage
+## Your base LaTeX files
 
-1. Open your GitHub Pages URL
-2. Paste the full job description
-3. Click **Generate Application**
-4. Wait ~3–5 minutes
-5. Your output folder appears in the repo — download the PDFs from there
+The tool works best with a standard LaTeX CV using `article` class and `pdflatex`-compatible packages. The repo includes `base_cv.tex` and `base_cover_letter.tex` as examples — replace these with your own.
+
+The agent is instructed to copy your preamble exactly and only edit text content. If you use a heavily custom LaTeX setup, it will still work — just verify the first output and adjust the system prompt in `docs/index.html` if needed.
 
 ---
 
 ## Customizing the agent
 
-The agent behavior is controlled entirely by `SYSTEM_PROMPT` in `agent.py`. Key things you may want to personalize:
+The system prompt lives inside a `<script type="text/plain" id="system-prompt">` tag in `docs/index.html`. Open it and edit directly — no escaping needed, paste plain text.
 
-- Your name (used in filenames and documents)
-- Your degree / background summary
-- Tone and style preferences for the cover letter
-- How aggressively to reframe experience vs. flag gaps
+Key things to personalize:
+- Your name (used in output filenames)
+- Your background and degree
+- How aggressively to reframe experience vs. flag gaps in the prep guide
 
-The default prompt is designed to be **honest** — it won't fabricate experience, and it explicitly flags stretch claims in the prep guide so you know what to prepare for in interviews.
+---
+
+## Privacy
+
+- Your Gemini API key is stored in `localStorage` — it never appears in the source code or git history
+- Your base CV and cover letter are stored in `localStorage` — they never leave your browser except when sent to Gemini as part of the generation prompt
+- No analytics, no tracking, no third-party services except Gemini API and latex.ytotech.com
 
 ---
 
 ## Repo structure
 
 ```
-├── .github/
-│   └── workflows/
-│       └── apply.yml        # GitHub Actions workflow
 ├── docs/
-│   ├── index.html           # GitHub Pages frontend
-│   └── screenshot.png       # Add your own screenshot here
-├── agent.py                 # Gemini agent
-├── compile.py               # LaTeX → PDF (you provide this)
-├── base_cv.tex              # Your master CV (you provide this)
-├── base_cover_letter.tex    # Your master cover letter (you provide this)
+│   └── index.html           # The entire app — GitHub Pages frontend
+├── base_cv.tex              # Example base CV (replace with yours)
+├── base_cover_letter.tex    # Example base cover letter (replace with yours)
 ├── requirements.txt
 └── README.md
 ```
-
----
-
-## Notes
-
-- The Gemini agent uses `gemini-3-flash` for the main generation task and `gemini-3-flash` for the cheap metadata extraction (company name / job title). Swap model strings in `agent.py` as newer models release.
-- The GitHub PAT is stored in the frontend JS. This is acceptable for a **private personal tool** — do not use this pattern for a public-facing app.
-- LaTeX compilation requires `texlive`. The workflow uses the `texlive/texlive:latest` Docker image which has everything pre-installed.
 
 ---
 

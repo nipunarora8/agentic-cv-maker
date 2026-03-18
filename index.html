@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nipun — Application Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #07080a;
+      --surface: #0f1115;
+      --surface2: #13161b;
+      --border: #1e2128;
+      --border-bright: #2e3340;
+      --text: #e8eaf0;
+      --muted: #555c70;
+      --accent: #c8f135;
+      --accent-dim: rgba(200, 241, 53, 0.07);
+      --accent-glow: rgba(200, 241, 53, 0.15);
+      --red: #ff4757;
+      --green: #3fb950;
+      --orange: #ffa502;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(200, 241, 53, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 241, 53, 0.025) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(200, 241, 53, 0.05) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .eyebrow::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .subtitle {
+      margin-top: 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 520px;
+    }
+
+    /* ── sections ── */
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 12px;
+      height: 1px;
+      background: var(--muted);
+      display: inline-block;
+    }
+
+    /* ── config grid ── */
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s 0.05s ease both;
+    }
+
+    @media (max-width: 600px) {
+      .config-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .config-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .config-row.full {
+      grid-column: 1 / -1;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      min-width: 0;
+    }
+
+    input::placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    input:focus {
+      border-color: rgba(200, 241, 53, 0.35);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .save-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.6rem 0.9rem;
+      background: var(--surface2);
+      border: 1px solid var(--border-bright);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .save-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .save-btn.saved {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .save-btn.has-file {
+      color: var(--orange);
+      border-color: var(--orange);
+    }
+
+    /* file upload slots */
+    .file-slot {
+      background: var(--surface);
+      border: 1px dashed var(--border-bright);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .file-slot:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .file-slot.loaded {
+      border-color: var(--green);
+      border-style: solid;
+      color: var(--green);
+    }
+
+    .file-slot.loaded .slot-icon {
+      color: var(--green);
+    }
+
+    .file-slot input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .slot-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .slot-icon {
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .clear-btn {
+      flex-shrink: 0;
+      margin-left: 0.4rem;
+      font-size: 0.65rem;
+      padding: 0.15em 0.4em;
+      background: transparent;
+      border: 1px solid var(--border-bright);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      z-index: 1;
+      position: relative;
+    }
+
+    .clear-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ── main card ── */
+    .card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .card-header {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .card-header .filename {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--border-bright);
+    }
+
+    .card-body {
+      padding: 1.4rem;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    label .tag {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(200, 241, 53, 0.18);
+      padding: 0.1em 0.45em;
+      border-radius: 2px;
+      font-size: 0.62rem;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.75;
+      padding: 1rem;
+      resize: vertical;
+      min-height: 220px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    textarea:focus {
+      border-color: rgba(200, 241, 53, 0.35);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.67rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      margin-bottom: 1.25rem;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.25rem 0;
+    }
+
+    /* ── button ── */
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    button.primary {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      padding: 0.8rem 1.8rem;
+      border: none;
+      background: var(--accent);
+      color: #07080a;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    button.primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    button.primary:hover:not(:disabled)::after {
+      opacity: 0.1;
+    }
+
+    button.primary:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    button.primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-hint {
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── progress ── */
+    .progress-wrap {
+      margin-top: 1.25rem;
+      display: none;
+    }
+
+    .progress-wrap.show {
+      display: block;
+    }
+
+    .progress-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-label span {
+      color: var(--accent);
+    }
+
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .steps {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+
+    .step.active {
+      color: var(--text);
+    }
+
+    .step.done {
+      color: var(--green);
+    }
+
+    .step.error {
+      color: var(--red);
+    }
+
+    .step-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid var(--border-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .step.active .step-icon {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .step.done .step-icon {
+      border-color: var(--green);
+      background: rgba(63, 185, 80, 0.1);
+      color: var(--green);
+    }
+
+    .step.error .step-icon {
+      border-color: var(--red);
+      background: rgba(255, 71, 87, 0.1);
+      color: var(--red);
+    }
+
+    .spinner-inline {
+      width: 8px;
+      height: 8px;
+      border: 1.5px solid var(--border-bright);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ── downloads ── */
+    .downloads {
+      margin-top: 1.5rem;
+      border: 1px solid rgba(200, 241, 53, 0.2);
+      background: var(--accent-dim);
+      display: none;
+    }
+
+    .downloads.show {
+      display: block;
+    }
+
+    .downloads-header {
+      padding: 0.8rem 1.2rem;
+      border-bottom: 1px solid rgba(200, 241, 53, 0.12);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .download-list {
+      padding: 0.75rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .dl-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: left;
+    }
+
+    .dl-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .dl-btn .dl-size {
+      color: var(--muted);
+      font-size: 0.65rem;
+    }
+
+    .dl-all-btn {
+      margin: 0 1.2rem 0.9rem;
+      width: calc(100% - 2.4rem);
+      padding: 0.7rem;
+      background: var(--accent);
+      border: none;
+      color: #07080a;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: opacity 0.18s;
+    }
+
+    .dl-all-btn:hover {
+      opacity: 0.88;
+    }
+
+    /* ── error ── */
+    .error-box {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 71, 87, 0.07);
+      border: 1px solid rgba(255, 71, 87, 0.25);
+      color: var(--red);
+      font-size: 0.77rem;
+      display: none;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .error-box.show {
+      display: block;
+    }
+
+    /* ── footer ── */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.67rem;
+      color: var(--muted);
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <script type="text/plain" id="system-prompt">
+# Role: Expert Tech Career Strategist & LaTeX Tailoring Agent
+
+## Objective
+You are a LaTeX document editor. You receive a base CV and a base cover letter as complete, compilable LaTeX files. Your ONLY job is to edit the text content inside those files to tailor them to the job description. You are NOT generating new documents — you are editing existing ones.
+
+## Critical Rule: Preserve LaTeX Structure
+- Copy the ENTIRE preamble (everything before \begin{document}) from the base file EXACTLY. Character for character. Do not change a single line of it.
+- Copy ALL \newcommand and \renewcommand definitions EXACTLY as they appear. Never rewrite them.
+- Copy ALL \begin{tabular*} format strings EXACTLY. Never modify the column spec.
+- The only things you are allowed to change are the TEXT CONTENT inside the document body — names of roles, bullet point text, summary paragraph, skills list content, dates if reordering is needed.
+- Never change document structure, section order beyond what is specified, or LaTeX commands.
+- Never introduce new LaTeX packages or commands not already in the base file.
+
+## The Goal: Genuine Relevance + Honest Positioning
+Map the user's real experience to the JD's actual needs. Do NOT stuff keywords. Surface the most relevant true work and frame it in the JD's vocabulary only where the mapping is honest.
+
+- Do NOT invent or hallucinate new projects, degrees, or jobs.
+- DO reframe, reorder, and emphasize existing work to mirror the JD's keywords where true and defensible.
+- Every claim must be something the user can speak to confidently in an interview.
+- All jobs, projects, and degrees must remain in chronological descending order (latest first).
+
+## Inputs
+- company_name: provided
+- job_title: provided
+- job_description: provided
+- base_cv: complete LaTeX CV file
+- base_cover_letter: complete LaTeX cover letter file
+
+## What to change in the CV
+1. Professional Profile: rewrite the summary paragraph text only.
+2. Core Technical Skills: reorder and reword the skill line text only. Do not add skills that are not in the base file.
+3. Projects & Experience bullet points: rewrite bullet text only. Move the most relevant entries to the top of their section by reordering the \resumeSubheading blocks. Never change the \resumeSubheading command itself.
+4. Do not touch Education, Publications, Additional Information unless a minor text tweak is needed.
+5. CV must not exceed two pages.
+
+## What to change in the Cover Letter
+1. Update recipient name, company name, date, and subject line text only.
+2. Rewrite the opening paragraph, body paragraphs, and closing paragraph text only.
+3. Do not change any LaTeX formatting commands, spacing, or structure.
+4. Must not exceed one page.
+
+## Interview Prep Guide (Markdown)
+Informal, direct, for the user's eyes only.
+
+### The Vibe Check
+What does this company actually care about? Read between the lines of the JD.
+
+### Your Flexes
+Map specific projects to JD requirements. Be explicit:
+Example: "When they ask about edge deployment, hit them with the SynergyLabs Jetson project."
+
+### Honest Gaps
+Distinguish closeable gaps (2-3 days of study) from structural gaps (missing years, tools never touched). For structural gaps, suggest how to address them proactively in the interview.
+
+### Mock Questions
+3-5 specific technical questions likely to come up. For each: why they will ask it, and key points for a strong answer.
+
+## Output Format
+Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, no text after </prep_guide>.
+
+<cv>
+[complete tailored LaTeX CV - full file from \documentclass to \end{document}]
+</cv>
+
+<cover_letter>
+[complete tailored LaTeX cover letter - full file from \documentclass to \end{document}]
+</cover_letter>
+
+<prep_guide>
+[markdown prep guide]
+</prep_guide>
+
+## Absolute Rules
+- Output must be the complete file each time, from \documentclass to \end{document}.
+- The preamble must be copied byte-for-byte from the base file. If you are unsure, copy it again.
+- Never truncate, summarize, or shorten any part of the LaTeX outside the specific text changes listed above.
+- Valid LaTeX only. Escape special characters: % & $ # _
+- No fabrication. No hallucination.
+- Metrics are sacred: never remove or weaken a quantified result.
+</script>
+
+  <div class="wrapper">
+
+    <header>
+      <div class="eyebrow">Career Automation</div>
+      <h1>Ship your<br><em>application.</em></h1>
+      <p class="subtitle">Paste a job description. Gemini tailors your CV and cover letter, compiles PDFs, and hands
+        everything back as a ZIP — all in the browser.</p>
+    </header>
+
+    <!-- Config -->
+    <div style="animation: fadeUp 0.5s 0.05s ease both;">
+      <div class="section-label">Configuration</div>
+      <div class="config-grid">
+
+        <!-- Gemini key -->
+        <div class="config-row full">
+          <input type="password" id="api-key" placeholder="Gemini API key — saved to localStorage" />
+          <button class="save-btn" id="api-save-btn" onclick="saveApiKey()">Save key</button>
+        </div>
+
+        <!-- Base CV -->
+        <div class="config-row">
+          <div class="file-slot" id="cv-slot">
+            <input type="file" id="cv-file-input" accept=".tex" onchange="loadFile('cv')" />
+            <span class="slot-name" id="cv-slot-name">&#8593; Upload base_cv.tex</span>
+            <span class="slot-icon">&#9711;</span>
+          </div>
+          <button class="clear-btn" onclick="clearFile('cv')" title="Clear">&#10005;</button>
+        </div>
+
+        <!-- Base Cover Letter -->
+        <div class="config-row">
+          <div class="file-slot" id="cl-slot">
+            <input type="file" id="cl-file-input" accept=".tex" onchange="loadFile('cl')" />
+            <span class="slot-name" id="cl-slot-name">&#8593; Upload base_cover.tex</span>
+            <span class="slot-icon">&#9711;</span>
+          </div>
+          <button class="clear-btn" onclick="clearFile('cl')" title="Clear">&#10005;</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span class="filename">job_description.txt</span>
+        <span id="wc">0 words</span>
+      </div>
+      <div class="card-body">
+        <label>Job Description <span class="tag">required</span></label>
+        <textarea id="jd"
+          placeholder="Paste the full job description here. Company name and job title are extracted automatically."></textarea>
+        <div class="meta-row">
+          <span id="detected">company &amp; role: not yet detected</span>
+          <span id="cc">0 chars</span>
+        </div>
+
+        <hr />
+
+        <div class="btn-row">
+          <button class="primary" id="gen-btn" onclick="generate()">&#9889; Generate</button>
+          <span class="btn-hint">
+            Calls Gemini directly from your browser.<br>
+            Downloads CV, cover letter &amp; prep guide as ZIP.
+          </span>
+        </div>
+
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-label">
+            <span id="progress-text">Initializing...</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="steps">
+            <div class="step" id="step-meta">
+              <div class="step-icon">1</div><span>Extracting company &amp; job title</span>
+            </div>
+            <div class="step" id="step-gen">
+              <div class="step-icon">2</div><span>Tailoring CV, cover letter &amp; prep guide</span>
+            </div>
+            <div class="step" id="step-cv-pdf">
+              <div class="step-icon">3</div><span>Compiling CV &#8594; PDF</span>
+            </div>
+            <div class="step" id="step-cl-pdf">
+              <div class="step-icon">4</div><span>Compiling cover letter &#8594; PDF</span>
+            </div>
+            <div class="step" id="step-zip">
+              <div class="step-icon">5</div><span>Packaging files</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="error-box" id="error-box"></div>
+
+        <div class="downloads" id="downloads">
+          <div class="downloads-header">&#10003; &nbsp;Ready to download</div>
+          <div class="download-list" id="dl-list"></div>
+          <button class="dl-all-btn" id="dl-all-btn">&#8595; Download all as ZIP</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>agentic cv maker</span>
+      <span>gemini &#183; latexonline.cc</span>
+    </footer>
+
+  </div>
+
+  <script>
+    const GEMINI_MODEL_MAIN = "gemini-3-flash-preview";
+    const GEMINI_MODEL_FAST = "gemini-flash-lite-latest";
+
+    // default URLs — fetched if no file uploaded
+    const DEFAULT_CV_URL = "https://raw.githubusercontent.com/nipunarora8/agentic-cv-maker/main/base_cv.tex";
+    const DEFAULT_CL_URL = "https://raw.githubusercontent.com/nipunarora8/agentic-cv-maker/main/base_cover.tex";
+
+    const SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
+    let outputFiles = {};
+
+    // ── on load ──────────────────────────────────────────────────
+    window.addEventListener("DOMContentLoaded", function () {
+      var key = localStorage.getItem("gemini_api_key");
+      if (key) {
+        document.getElementById("api-key").value = key;
+        setBtn("api-save-btn", "saved", "✓ Saved");
+      }
+      restoreFile("cv");
+      restoreFile("cl");
+    });
+
+    // ── api key ──────────────────────────────────────────────────
+    function saveApiKey() {
+      var key = document.getElementById("api-key").value.trim();
+      if (!key) return;
+      localStorage.setItem("gemini_api_key", key);
+      setBtn("api-save-btn", "saved", "✓ Saved");
+    }
+
+    // ── file handling ────────────────────────────────────────────
+    function loadFile(type) {
+      var inputId = type === "cv" ? "cv-file-input" : "cl-file-input";
+      var file = document.getElementById(inputId).files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        localStorage.setItem("base_" + type, e.target.result);
+        localStorage.setItem("base_" + type + "_name", file.name);
+        updateFileSlot(type, file.name);
+      };
+      reader.readAsText(file);
+    }
+
+    function restoreFile(type) {
+      var content = localStorage.getItem("base_" + type);
+      var name = localStorage.getItem("base_" + type + "_name");
+      if (content && name) updateFileSlot(type, name);
+    }
+
+    function clearFile(type) {
+      localStorage.removeItem("base_" + type);
+      localStorage.removeItem("base_" + type + "_name");
+      var slotId = type === "cv" ? "cv-slot" : "cl-slot";
+      var nameId = type === "cv" ? "cv-slot-name" : "cl-slot-name";
+      var inputId = type === "cv" ? "cv-file-input" : "cl-file-input";
+      var defaultText = type === "cv" ? "↑ Upload base_cv.tex" : "↑ Upload base_cover.tex";
+      document.getElementById(slotId).classList.remove("loaded");
+      document.getElementById(nameId).textContent = defaultText;
+      document.getElementById(inputId).value = "";
+    }
+
+    function updateFileSlot(type, name) {
+      var slotId = type === "cv" ? "cv-slot" : "cl-slot";
+      var nameId = type === "cv" ? "cv-slot-name" : "cl-slot-name";
+      document.getElementById(slotId).classList.add("loaded");
+      document.getElementById(nameId).textContent = "✓ " + name;
+    }
+
+    async function getBaseFiles() {
+      var cvContent = localStorage.getItem("base_cv");
+      var clContent = localStorage.getItem("base_cl");
+
+      // fall back to fetching from GitHub if not uploaded
+      if (!cvContent) {
+        var r = await fetch(DEFAULT_CV_URL);
+        if (!r.ok) throw new Error("Could not fetch base_cv.tex. Please upload it manually.");
+        cvContent = await r.text();
+      }
+      if (!clContent) {
+        var r2 = await fetch(DEFAULT_CL_URL);
+        if (!r2.ok) throw new Error("Could not fetch base_cover.tex. Please upload it manually.");
+        clContent = await r2.text();
+      }
+      return { baseCv: cvContent, baseCl: clContent };
+    }
+
+    // ── helpers ──────────────────────────────────────────────────
+    function setBtn(id, cls, text) {
+      var btn = document.getElementById(id);
+      btn.className = "save-btn " + cls;
+      btn.textContent = text;
+    }
+
+    function setProgress(pct, label) {
+      document.getElementById("progress-fill").style.width = pct + "%";
+      document.getElementById("progress-pct").textContent = pct + "%";
+      if (label) document.getElementById("progress-text").textContent = label;
+    }
+
+    function setStep(id, state) {
+      var el = document.getElementById(id);
+      el.className = "step " + state;
+      var icon = el.querySelector(".step-icon");
+      if (state === "active") {
+        icon.innerHTML = '<div class="spinner-inline"></div>';
+      } else if (state === "done") {
+        icon.textContent = "✓";
+      } else if (state === "error") {
+        icon.textContent = "✗";
+      }
+    }
+
+    function showError(msg) {
+      var el = document.getElementById("error-box");
+      el.textContent = msg;
+      el.classList.add("show");
+    }
+
+    function extractBlock(text, tag) {
+      var re = new RegExp("<" + tag + ">([\\s\\S]*?)<\\/" + tag + ">");
+      var m = text.match(re);
+      if (!m) throw new Error("Model did not return a <" + tag + "> block. Raw response:\n" + text.slice(0, 600));
+      return m[1].trim();
+    }
+
+    // ── gemini ───────────────────────────────────────────────────
+    async function callGemini(apiKey, model, systemInstruction, userPrompt) {
+      var res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ parts: [{ text: userPrompt }] }],
+            generationConfig: { temperature: 0.2 }
+          })
+        }
+      );
+      if (!res.ok) {
+        var err = await res.json();
+        throw new Error(err.error && err.error.message ? err.error.message : "Gemini HTTP " + res.status);
+      }
+      var data = await res.json();
+      return data.candidates[0].content.parts[0].text;
+    }
+
+    // ── latex compile ────────────────────────────────────────────
+    async function compileTex(texContent, filename) {
+      var res = await fetch("https://latex.ytotech.com/builds/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          compiler: "xelatex",
+          resources: [{ main: true, content: texContent }]
+        })
+      });
+      if (!res.ok) {
+        var data = await res.json();
+        var log = data.log_files && data.log_files["__main_document__.log"] ? data.log_files["__main_document__.log"] : "";
+        var errorLine = "";
+        var lines = log.split("\n");
+        for (var i = 0; i < lines.length; i++) {
+          if (lines[i].indexOf("!") === 0) { errorLine = lines[i]; break; }
+        }
+        throw new Error("LaTeX compile failed for " + filename + ":\n" + (errorLine || log.slice(0, 400)));
+      }
+      return await res.blob();
+    }
+
+    // ── download button ──────────────────────────────────────────
+    function addDownloadButton(filename, blob) {
+      outputFiles[filename] = blob;
+      var size = blob.size > 1024 ? (blob.size / 1024).toFixed(1) + " KB" : blob.size + " B";
+      var btn = document.createElement("button");
+      btn.className = "dl-btn";
+      btn.innerHTML = "<span>&#8595; " + filename + "</span><span class='dl-size'>" + size + "</span>";
+      btn.onclick = function () {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+      };
+      document.getElementById("dl-list").appendChild(btn);
+    }
+
+    // ── main ─────────────────────────────────────────────────────
+    async function generate() {
+      var apiKey = document.getElementById("api-key").value.trim();
+      var jd = document.getElementById("jd").value.trim();
+
+      if (!apiKey) { showError("Add your Gemini API key first."); return; }
+      if (!jd) { showError("Paste a job description first."); return; }
+
+      // reset UI
+      document.getElementById("error-box").classList.remove("show");
+      document.getElementById("downloads").classList.remove("show");
+      document.getElementById("dl-list").innerHTML = "";
+      document.getElementById("progress-wrap").classList.add("show");
+      document.getElementById("gen-btn").disabled = true;
+      outputFiles = {};
+
+      var stepNums = { "step-meta": "1", "step-gen": "2", "step-cv-pdf": "3", "step-cl-pdf": "4", "step-zip": "5" };
+      Object.keys(stepNums).forEach(function (id) {
+        document.getElementById(id).className = "step";
+        document.getElementById(id).querySelector(".step-icon").textContent = stepNums[id];
+      });
+
+      try {
+        // 1 — extract meta
+        setStep("step-meta", "active");
+        setProgress(5, "Extracting company & job title...");
+        var metaText = await callGemini(
+          apiKey, GEMINI_MODEL_FAST,
+          "You are a precise metadata extractor. Respond only with the requested XML tags, no other text.",
+          "Extract the company name and job title from this job description.\nRespond with ONLY these two tags:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
+        );
+        var companyName = extractBlock(metaText, "company");
+        var jobTitle = extractBlock(metaText, "job_title");
+        document.getElementById("detected").textContent = "detected: " + companyName + " — " + jobTitle;
+        setStep("step-meta", "done");
+
+        // 1.5 — fetch base files
+        setProgress(12, "Loading base CV and cover letter...");
+        var bases = await getBaseFiles();
+
+        // 2 — generate
+        setStep("step-gen", "active");
+        setProgress(20, "Tailoring documents...");
+
+        var genPrompt =
+          "company_name: " + companyName + "\n" +
+          "job_title: " + jobTitle + "\n\n" +
+          "<job_description>\n" + jd + "\n</job_description>\n\n" +
+          "<base_cv>\n" + bases.baseCv + "\n</base_cv>\n\n" +
+          "<base_cover_letter>\n" + bases.baseCl + "\n</base_cover_letter>\n\n" +
+          "Now produce the three tagged blocks. The <cv> and <cover_letter> blocks must be complete LaTeX files " +
+          "with the preamble copied EXACTLY from the base files above — do not change a single character of the preamble.";
+
+        var genText = await callGemini(apiKey, GEMINI_MODEL_MAIN, SYSTEM_PROMPT, genPrompt);
+
+        var cvTex = extractBlock(genText, "cv");
+        var clTex = extractBlock(genText, "cover_letter");
+        var prepMd = extractBlock(genText, "prep_guide");
+
+        var cap = companyName.replace(/\s+/g, "_");
+        var folderKey = companyName.replace(/\s+/g, "_") + "_" + jobTitle.replace(/\s+/g, "_");
+        var cvTexName = "CV_Nipun_Arora_" + cap + ".tex";
+        var clTexName = "Cover_Nipun_Arora_" + cap + ".tex";
+        var cvPdfName = "CV_Nipun_Arora_" + cap + ".pdf";
+        var clPdfName = "Cover_Nipun_Arora_" + cap + ".pdf";
+        var prepName = "Interview_Prep_" + cap + ".md";
+
+        addDownloadButton(cvTexName, new Blob([cvTex], { type: "text/plain" }));
+        addDownloadButton(clTexName, new Blob([clTex], { type: "text/plain" }));
+        addDownloadButton(prepName, new Blob([prepMd], { type: "text/markdown" }));
+        setStep("step-gen", "done");
+
+        // 3 — compile CV
+        setStep("step-cv-pdf", "active");
+        setProgress(55, "Compiling CV to PDF...");
+        addDownloadButton(cvPdfName, await compileTex(cvTex, cvTexName));
+        setStep("step-cv-pdf", "done");
+
+        // 4 — compile cover letter
+        setStep("step-cl-pdf", "active");
+        setProgress(75, "Compiling cover letter to PDF...");
+        addDownloadButton(clPdfName, await compileTex(clTex, clTexName));
+        setStep("step-cl-pdf", "done");
+
+        // 5 — zip
+        setStep("step-zip", "active");
+        setProgress(90, "Packaging files...");
+        var zip = new JSZip();
+        var folder = zip.folder(folderKey);
+        Object.keys(outputFiles).forEach(function (name) { folder.file(name, outputFiles[name]); });
+        var zipBlob = await zip.generateAsync({ type: "blob" });
+        document.getElementById("dl-all-btn").onclick = function () {
+          var url = URL.createObjectURL(zipBlob);
+          var a = document.createElement("a");
+          a.href = url; a.download = folderKey + ".zip"; a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        setStep("step-zip", "done");
+        setProgress(100, "Done.");
+        document.getElementById("downloads").classList.add("show");
+
+      } catch (e) {
+        showError(e.message);
+        ["step-meta", "step-gen", "step-cv-pdf", "step-cl-pdf", "step-zip"].forEach(function (id) {
+          if (document.getElementById(id).classList.contains("active")) setStep(id, "error");
+        });
+      } finally {
+        document.getElementById("gen-btn").disabled = false;
+      }
+    }
+
+    // word count
+    document.addEventListener("DOMContentLoaded", function () {
+      var jdEl = document.getElementById("jd");
+      jdEl.addEventListener("input", function () {
+        var t = jdEl.value.trim();
+        document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
+        document.getElementById("cc").textContent = jdEl.value.length + " chars";
+      });
+    });
+  </script>
+</body>
+
+</html>
