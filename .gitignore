@@ -1,0 +1,6 @@
+.env
+jd.txt
+.DS_Store
+*.tex
+*.pdf
+*.md
