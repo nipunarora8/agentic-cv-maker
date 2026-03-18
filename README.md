@@ -145,12 +145,6 @@ The default prompt is designed to be **honest** — it won't fabricate experienc
 
 ---
 
-## Adding a screenshot
-
-Take a screenshot of your running web UI and save it as `docs/screenshot.png`. It will automatically appear at the top of this README.
-
----
-
 ## Notes
 
 - The Gemini agent uses `gemini-3-flash` for the main generation task and `gemini-3-flash` for the cheap metadata extraction (company name / job title). Swap model strings in `agent.py` as newer models release.
