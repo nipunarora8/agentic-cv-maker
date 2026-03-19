@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg: #07080a;
@@ -78,7 +79,6 @@
             padding: 3.5rem 2rem 6rem;
         }
 
-        /* ── header ── */
         header {
             margin-bottom: 2.5rem;
             animation: fadeUp 0.5s ease both;
@@ -124,7 +124,6 @@
             max-width: 500px;
         }
 
-        /* ── section label ── */
         .slabel {
             font-size: 0.62rem;
             letter-spacing: 0.2em;
@@ -144,7 +143,6 @@
             display: inline-block;
         }
 
-        /* ── provider selector ── */
         .provider-section {
             margin-bottom: 1.25rem;
             animation: fadeUp 0.5s 0.05s ease both;
@@ -199,7 +197,6 @@
             color: var(--accent);
         }
 
-        /* ── model + key row ── */
         .model-key-row {
             display: flex;
             gap: 0.6rem;
@@ -293,7 +290,6 @@
             background: rgba(63, 185, 80, 0.05);
         }
 
-        /* ── file upload grid ── */
         .files-section {
             margin-bottom: 1.25rem;
             animation: fadeUp 0.5s 0.1s ease both;
@@ -392,7 +388,6 @@
             color: var(--red);
         }
 
-        /* ── format hint ── */
         .format-hint {
             margin-top: 0.5rem;
             font-size: 0.63rem;
@@ -425,7 +420,6 @@
             color: var(--blue);
         }
 
-        /* ── main card ── */
         .card {
             border: 1px solid var(--border);
             background: var(--surface);
@@ -523,7 +517,6 @@
             margin: 1.2rem 0;
         }
 
-        /* ── generate button ── */
         .btn-row {
             display: flex;
             align-items: center;
@@ -573,7 +566,6 @@
             line-height: 1.6;
         }
 
-        /* ── progress ── */
         .progress-wrap {
             margin-top: 1.2rem;
             display: none;
@@ -676,7 +668,6 @@
             animation: spin 0.7s linear infinite;
         }
 
-        /* ── downloads ── */
         .downloads {
             margin-top: 1.4rem;
             border: 1px solid rgba(200, 241, 53, 0.2);
@@ -747,7 +738,6 @@
             opacity: 0.88;
         }
 
-        /* ── error ── */
         .error-box {
             margin-top: 1rem;
             padding: 0.8rem 1rem;
@@ -871,7 +861,48 @@
             color: var(--red);
         }
 
-        /* ── footer ── */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(120px, 1fr));
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .breakdown-item {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        .breakdown-k {
+            font-size: 0.62rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.4rem;
+        }
+
+        .breakdown-v {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        .score-note {
+            margin-top: 0.9rem;
+            font-size: 0.64rem;
+            color: var(--muted);
+            line-height: 1.7;
+            text-align: left;
+        }
+
+        @media (max-width: 820px) {
+            .breakdown-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         footer {
             margin-top: 2.5rem;
             padding-top: 1.25rem;
@@ -882,7 +913,6 @@
             color: var(--muted);
             animation: fadeUp 0.5s 0.2s ease both;
         }
-
 
         @keyframes fadeUp {
             from {
@@ -906,112 +936,186 @@
 
 <body>
 
-    <!-- ── System prompt ── -->
     <script type="text/plain" id="system-prompt">
-# Role: Expert Tech Career Strategist & LaTeX Tailoring Agent
+# Role: Expert Tech Career Strategist, Resume Tailoring Editor, and Recruiter-Side Reviewer
 
 ## Identity & Mission
-You are an elite career tailoring agent. You receive a user's base CV and cover letter in LaTeX, plus a target job description. Your job is to produce a tailored CV, cover letter, and interview prep guide.
+You are an elite job application tailoring agent.
 
-You are a LaTeX EDITOR — not a generator. You edit existing files. You do not create new documents from scratch.
+You receive:
+- a base CV
+- a base cover letter
+- a target job description
+- a tailoring intensity setting
+
+Your job is to:
+1. tailor the CV
+2. tailor the cover letter
+3. extract a structured hiring profile from the job description
+4. produce a recruiter-style application review
+5. produce an interview prep guide
+6. produce outreach content
+
+You are a LaTeX EDITOR — not a generator — when a LaTeX base file is provided.
+You must preserve the existing LaTeX structure exactly where instructed.
 
 ## Critical LaTeX Rules — Never Violate
-- Copy the ENTIRE preamble (everything before \begin{document}) from the base file EXACTLY, character for character. Do not change a single line.
+- Copy the ENTIRE preamble (everything before \begin{document}) from the base file EXACTLY, character for character.
+- Do not modify, reorder, reformat, or rewrite any line in the preamble.
 - Copy ALL \newcommand and \renewcommand definitions EXACTLY as they appear.
 - Copy ALL \begin{tabular*} format strings EXACTLY. Never modify column specs or move braces.
-- Never introduce LaTeX packages or commands not already in the base file.
-- Never truncate, summarize, or shorten any part of the LaTeX structure.
-- The output must be a complete file every time — from \documentclass to \end{document}.
-- Valid LaTeX only. Escape all special characters: % & $ # _
-- No AI artifacts, markdown tags, or meta-commentary inside .tex files.
+- Never introduce new LaTeX packages or commands not already in the base file.
+- Never truncate, summarize, or shorten the LaTeX structure.
+- The output must always be a complete LaTeX file from \documentclass to \end{document}.
+- Escape LaTeX special characters where needed: % & $ # _
+- No markdown, no AI commentary, no notes inside .tex output.
 
-## Step 1 — Analyze the JD
-Before editing anything, extract:
-- Company name and role
-- Top 10 technical keywords
-- Core business problem the hire is solving
-- Key constraints or values (real-time, edge, clean code, agile, research depth, etc.)
-- Culture read: what kind of engineer are they really after?
+## Truthfulness Rules
+- No fabrication.
+- Never add skills, tools, certifications, achievements, titles, or responsibilities the candidate does not already have.
+- Never invent metrics.
+- Metrics are sacred: preserve all quantified results exactly unless the base file itself is inconsistent.
+- Only reframe the candidate’s real experience in a way they could honestly defend in an interview.
+- If a claim is weakly supported, do not present it as a strong direct match.
 
-## Step 2 — Tailor the CV
+## Job Description Analysis Task
+Before tailoring, extract a structured hiring profile from the job description.
+
+The hiring profile must identify:
+- company name
+- job title
+- seniority level
+- role family
+- domain / industry
+- top business problem the hire is meant to solve
+- hard requirements (MUST BE ATOMIC KEYWORDS, 1-2 words max. e.g. "Python", NOT "Knowledge of Python")
+- preferred requirements (ATOMIC KEYWORDS ONLY)
+- tools / technologies (ATOMIC KEYWORDS ONLY)
+- methods / competencies
+- soft-skill signals
+- culture / operating style signals
+- evidence priorities: what the hiring team is most likely to value in a resume
+- likely recruiter concerns or filters
+
+Return this in machine-readable JSON.
+
+## CV Tailoring Task
 Rules:
-- **Professional Profile:** Rewrite the summary to position the user as the direct solution to the company's core problem. Factual, grounded in their real background only.
-- **Core Technical Skills:** Reorder so JD-matching tools appear first. Match exact phrasing from the JD where possible. Never add skills the user does not have.
-- **Experience & Projects:**
-  - Move the most JD-relevant entries to the top of their sections by reordering \resumeSubheading blocks.
-  - Rewrite bullet text to incorporate JD keywords where the mapping is honest and defensible.
-  - Internally tag each reframed bullet: Strong (direct match), Stretch (adjacent, honest), Weak (thin connection). Stretch and Weak bullets must be flagged in the prep guide.
-  - Never remove or soften a quantified metric. Numbers are sacred.
-  - Only highlight constraints (power, latency, resource limits) if they were genuinely part of the work.
-- All jobs, projects, and degrees must remain newest first.
-- CV must not exceed two pages.
+- Tailor the CV toward the target job, but remain fully truthful.
+- Reorder skills so the most relevant genuine skills appear first.
+- Reorder experience/project entries only if the chronology remains newest first.
+- Rewrite summary/profile text to match the role’s actual needs using only real background.
+- Rewrite bullets to increase relevance only where the mapping is honest.
+- Preserve quantified outcomes exactly.
+- Improve clarity, specificity, and relevance.
+- Avoid keyword stuffing.
+- Do not overuse exact JD wording unless the resume genuinely supports it.
+- The CV should read like a strong application, not like a copy of the JD.
 
-## Step 3 — Tailor the Cover Letter
+## Cover Letter Tailoring Task
 Rules:
-- Update recipient, company name, date, and subject line.
-- Opening: name the exact role, connect the user's background to the company's specific mission concretely.
-- Body: 2-3 focused prose paragraphs. Each makes one concrete claim backed by a specific result. No bullet points. No claims the user cannot defend in an interview.
-- Closing: genuine enthusiasm, clear call to action.
-- Must not exceed one page.
-- Never touch LaTeX preamble or document structure — text content only.
+- Update recipient/company/role references where possible from the JD.
+- Make the letter specific to the role and company.
+- Use 2–3 compact prose paragraphs in the body.
+- Each paragraph should make a concrete claim supported by a real result or experience.
+- No fabricated enthusiasm, no generic fluff, no claims the candidate cannot defend.
+- Keep it under one page.
+- Do not modify LaTeX structure outside text edits.
 
-## Step 4 — Interview Prep Guide (Markdown)
-Informal, direct, for the user's eyes only.
+## Recruiter Review Task
+Produce a concise, recruiter-style application review in markdown.
+Keep it extremely clean and to-the-point with EXACTLY 3 sections and NO excessive bullet points:
 
+1. **The Hook:** One short sentence on why this candidate stands out immediately.
+2. **Top Strengths:** 2-3 brief, punchy sentences on why they should be shortlisted.
+3. **Biggest Risk:** 1-2 brief sentences identifying the main concern or missing requirement the candidate must overcome.
+
+Do not include any other sections. Be ruthless, concrete, and direct.
+
+## Interview Prep Guide
+Write an informal but sharp prep guide for the candidate.
+
+Include:
 ### The Vibe Check
-What does this company actually care about? Read between the lines — clean code, deep math, hardware constraints, research credibility, or fast shipping?
+What does this company actually care about?
 
-### Your Flexes
-Map the user's specific projects to the JD's core requirements. Be explicit and ready-to-use:
-Example: "When they ask about edge deployment — lead with the Jetson project. Open with the power constraint angle and the latency numbers."
-One concrete mapping per major JD requirement.
+### Your Strongest Angles
+Map the candidate’s real background to the job’s biggest needs.
 
 ### Honest Gaps
-Two categories:
-- Closeable (2-3 days of study): exact concepts/frameworks to review + suggested resource.
-- Structural (missing experience, untouched specialization): how to acknowledge it proactively in the interview and redirect to adjacent strength.
-All Stretch and Weak CV bullets must appear here with specific prep notes.
+Separate into:
+- Closeable gaps
+- Structural gaps
 
-### Mock Questions
-3-5 specific technical or architecture questions likely to come up. For each:
-- Why they will ask it
-- Key points for a strong answer (not a script)
+### Likely Questions
+Provide 4–6 likely interview questions with:
+- why they may ask
+- what a strong answer should cover
 
-## Step 5 — ATS Match Score & Analysis
-Act as an industry-standard Applicant Tracking System (ATS). Analyze how well the tailored CV matches the job description.
-Calculate a strong, objective match score out of 100 based on keyword density, skills alignment, and experience relevance, on par with what the industry uses.
-Identify the exact matching keywords present in both, and the important keywords missing from the CV.
-Provide a short paragraph of overall analysis.
+## Outreach Pack
+Write:
+1. a short cold email to the hiring manager
+2. a LinkedIn connection note under 300 characters
+
+## IMPORTANT SCORING BOUNDARY
+Do NOT generate any ATS score, match score, percentage, rating, or numeric evaluation.
+Do NOT simulate a vendor ATS score.
+Do NOT return SCORE / MATCHING / MISSING sections.
+
+Instead, return:
+- structured hiring profile JSON
+- recruiter-style review
+The frontend will compute deterministic scoring separately.
 
 ## Output Format
-Respond with EXACTLY four tagged blocks and nothing else. No text before <cv>, no text after </ats_analysis>:
+Respond with EXACTLY seven tagged blocks and nothing else outside them.
 
 <cv>
-[complete tailored LaTeX CV — full file from \documentclass to \end{document}]
+[complete tailored LaTeX CV]
 </cv>
 
 <cover_letter>
-[complete tailored LaTeX cover letter — full file from \documentclass to \end{document}]
+[complete tailored LaTeX cover letter]
 </cover_letter>
 
 <prep_guide>
 [markdown interview prep guide]
 </prep_guide>
 
-<ats_analysis>
-SCORE: [integer 0-100]
-MATCHING: [comma-separated list of 5-10 keywords]
-MISSING: [comma-separated list of 3-5 keywords]
-ANALYSIS: [short paragraph explaining the score]
-</ats_analysis>
+<jd_profile>
+{
+  "company_name": "",
+  "job_title": "",
+  "seniority_level": "",
+  "role_family": "",
+  "industry_or_domain": "",
+  "core_keywords": ["Atomic", "Keywords", "Only"],
+  "hard_requirements": ["Python", "Not 'Good knowledge of Python'"],
+  "tools_and_technologies": ["Maximum", "Two", "Words"],
+  "evidence_priorities": ["Keep", "These", "Extremely", "Short"],
+  "synonym_map": { "keyword": ["synonym1"] }
+}
+</jd_profile>
 
-## Hard Rules
-- No fabrication. Every claim must be real and something the user can defend in an interview.
-- Metrics are sacred. Never remove, weaken, or vague-up a quantified result.
-- No keyword stuffing. Only use JD keywords where the mapping is genuinely honest.
-- Newest first. All experience, projects, and degrees in reverse chronological order.
-- Preamble is untouchable. Copy it byte-for-byte from the base file.
-</script>
+<recruiter_review>
+[markdown recruiter-style review]
+</recruiter_review>
+
+<cold_email>
+[text]
+</cold_email>
+
+<linkedin_note>
+[text under 300 characters]
+</linkedin_note>
+
+## Final Hard Rules
+- No fabrication
+- No numeric ATS scoring
+- No extra commentary outside the required tags
+- Write all generated content (CV, Cover Letter, Prep Guide, Reviews, Emails) in the SAME LANGUAGE as the Job Description.
+- Keep outputs faithful, defensible, specific, and recruiter-credible
+    </script>
 
     <div class="wrapper">
 
@@ -1023,7 +1127,6 @@ ANALYSIS: [short paragraph explaining the score]
                 hands everything back as a ZIP — all in the browser.</p>
         </header>
 
-        <!-- ── Provider selector ── -->
         <div class="provider-section">
             <div class="slabel">AI Provider</div>
             <div class="provider-tabs">
@@ -1042,7 +1145,6 @@ ANALYSIS: [short paragraph explaining the score]
             </div>
         </div>
 
-        <!-- ── Model + API key ── -->
         <div class="model-key-row">
             <select id="model-select" onchange="saveModelChoice()"></select>
             <div class="key-input-wrap">
@@ -1051,7 +1153,6 @@ ANALYSIS: [short paragraph explaining the score]
             </div>
         </div>
 
-        <!-- ── File upload ── -->
         <div class="files-section">
             <div class="slabel">Base Documents</div>
             <div class="files-grid">
@@ -1083,9 +1184,8 @@ ANALYSIS: [short paragraph explaining the score]
             </div>
 
             <div class="fmt-warning" id="fmt-warning">
-                ⚠ PDF/DOC detected — text content will be preserved but formatting cannot be inferred from binary files.
-                For
-                exact layout preservation, use <strong>.tex</strong>.
+                PDF/DOC support is not active in this patched version. Use <strong>.tex</strong> files for exact layout
+                preservation.
             </div>
 
             <div class="format-hint">
@@ -1094,7 +1194,6 @@ ANALYSIS: [short paragraph explaining the score]
             </div>
         </div>
 
-        <!-- ── JD card ── -->
         <div class="card">
             <div class="card-header">
                 <div class="dots"><span></span><span></span><span></span></div>
@@ -1108,6 +1207,16 @@ ANALYSIS: [short paragraph explaining the score]
                 <div class="meta-row">
                     <span id="detected">company &amp; role: not yet detected</span>
                     <span id="cc">0 chars</span>
+                </div>
+
+                <div class="options-row"
+                    style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 1.2rem;">
+                    <label style="margin:0; width:auto; flex-shrink:0;">Tailoring Intensity</label>
+                    <select id="tailor-intensity" style="flex:1;" onchange="saveIntensity()">
+                        <option value="light">Light (Reorder only, preserve original text)</option>
+                        <option value="balanced" selected>Balanced (Rewrite text to honestly fit JD keywords)</option>
+                        <option value="aggressive">Aggressive (Heavy rewrite and maximum re-framing)</option>
+                    </select>
                 </div>
 
                 <hr />
@@ -1133,7 +1242,7 @@ ANALYSIS: [short paragraph explaining the score]
                             <div class="step-icon">1</div><span>Extracting company &amp; job title</span>
                         </div>
                         <div class="step" id="step-gen">
-                            <div class="step-icon">2</div><span>Tailoring CV, cover letter &amp; prep guide</span>
+                            <div class="step-icon">2</div><span>Tailoring CV, cover letter &amp; recruiter review</span>
                         </div>
                         <div class="step" id="step-cv-pdf">
                             <div class="step-icon">3</div><span>Compiling CV &#8594; PDF</span>
@@ -1149,25 +1258,80 @@ ANALYSIS: [short paragraph explaining the score]
 
                 <div class="error-box" id="error-box"></div>
 
-                <div class="score-card" id="score-card">
-                    <div class="score-label">ATS Match Score</div>
-                    <div class="score-value" id="score-value">0%</div>
-                    <div class="score-bar">
-                        <div class="score-fill" id="score-fill"></div>
+                <div class="score-card" id="score-card" style="padding: 1.2rem;">
+                    <div style="display: flex; gap: 1rem; text-align: left; flex-wrap: wrap;">
+                        <div
+                            style="flex: 1; padding: 1rem; border: 1px solid var(--border); background: var(--surface);">
+                            <div class="score-label" style="text-align: center;">Original Application Match</div>
+                            <div class="score-value" id="orig-score-value" style="text-align: center;">0%</div>
+                            <div class="score-bar" style="margin-bottom: 1rem;">
+                                <div class="score-fill" id="orig-score-fill"></div>
+                            </div>
+                            <div class="ats-kw-group">
+                                <strong>Matching Signals</strong>
+                                <div id="orig-ats-matching"></div>
+                            </div>
+                            <div class="ats-kw-group">
+                                <strong>Missing Signals</strong>
+                                <div id="orig-ats-missing"></div>
+                            </div>
+                            <div class="breakdown-grid" id="orig-breakdown-grid"></div>
+                        </div>
+
+                        <div
+                            style="flex: 1; padding: 1rem; border: 1px solid rgba(200, 241, 53, 0.3); background: rgba(200, 241, 53, 0.05);">
+                            <div class="score-label" style="text-align: center; color: var(--accent);">Tailored
+                                Application Match</div>
+                            <div class="score-value" id="score-value" style="text-align: center;">0%</div>
+                            <div class="score-bar" style="margin-bottom: 1rem;">
+                                <div class="score-fill" id="score-fill"></div>
+                            </div>
+                            <div class="ats-kw-group">
+                                <strong>Matching Signals</strong>
+                                <div id="ats-matching"></div>
+                            </div>
+                            <div class="ats-kw-group">
+                                <strong>Missing Signals</strong>
+                                <div id="ats-missing"></div>
+                            </div>
+                            <div class="breakdown-grid" id="tailored-breakdown-grid"></div>
+                        </div>
                     </div>
-                    <div class="ats-details" id="ats-details">
-                        <div class="ats-kw-group">
-                            <strong>Matching Keywords</strong>
-                            <div id="ats-matching"></div>
-                        </div>
-                        <div class="ats-kw-group">
-                            <strong>Missing Keywords</strong>
-                            <div id="ats-missing"></div>
-                        </div>
+
+                    <div class="score-note">
+                        This score is computed in-browser from transparent rules: hard requirements, skills coverage,
+                        evidence strength, role alignment, and format compatibility. It is not a vendor-specific ATS
+                        score.
+                    </div>
+
+                    <div class="ats-details" id="ats-details"
+                        style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; text-align: left;">
                         <div class="ats-analysis-text">
-                            <strong>Analysis</strong>
-                            <div id="ats-analysis-text"></div>
+                            <strong>Recruiter Read</strong>
+                            <div id="ats-analysis-text"
+                                style="font-size: 0.75rem; line-height: 1.6; color: var(--text);">
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="outreach-card" id="outreach-card"
+                    style="display:none; margin-top: 1rem; border: 1px dashed var(--border-bright); padding: 1.2rem; background: var(--surface);">
+                    <div class="slabel" style="margin-bottom: 0.8rem; color: var(--accent);">Outreach Pack</div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="color:var(--text); font-size:0.68rem; display:block; margin-bottom:0.4rem;">Cold
+                            Email</strong>
+                        <textarea id="ce-text" readonly
+                            style="min-height: 120px; font-size:0.7rem; background: var(--surface2); color: var(--muted); padding: 0.8rem; border: 1px solid var(--border); width: 100%; resize: none;"></textarea>
+                    </div>
+                    <div>
+                        <strong
+                            style="color:var(--text); font-size:0.68rem; display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                            <span>LinkedIn Connection Note</span>
+                            <span style="color:var(--muted);"><span id="li-count">0</span> / 300</span>
+                        </strong>
+                        <textarea id="li-text" readonly
+                            style="min-height: 80px; font-size:0.7rem; background: var(--surface2); color: var(--muted); padding: 0.8rem; border: 1px solid var(--border); width: 100%; resize: none;"></textarea>
                     </div>
                 </div>
 
@@ -1176,18 +1340,30 @@ ANALYSIS: [short paragraph explaining the score]
                     <div class="download-list" id="dl-list"></div>
                     <button class="dl-all-btn" id="dl-all-btn">&#8595; Download all as ZIP</button>
                 </div>
+
+                <div class="pdf-preview-card" id="pdf-preview-card"
+                    style="display:none; margin-top: 1rem; border: 1px dashed var(--border-bright); padding: 0.5rem; background: var(--surface); height: 800px;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem; padding: 0.2rem 0.5rem;">
+                        <span class="slabel" style="margin:0; color: var(--accent);">Live CV Preview</span>
+                        <a id="preview-open-btn" target="_blank"
+                            style="color:var(--muted); font-size:0.65rem; text-decoration:none; transition: color 0.2s;">Open
+                            in new tab &#8599;</a>
+                    </div>
+                    <iframe id="pdf-iframe"
+                        style="width:100%; height:calc(100% - 2rem); border:none; background: var(--surface2);"></iframe>
+                </div>
             </div>
         </div>
 
         <footer>
-            <span>agentic cv maker — open source</span>
+            <span>agentic cv maker — transparent match scoring</span>
             <span id="footer-provider">gemini &#183; latexonline.cc</span>
         </footer>
 
     </div>
 
     <script>
-        // ── Provider config ──────────────────────────────────────────
         var PROVIDERS = {
             gemini: {
                 name: "Gemini",
@@ -1221,6 +1397,7 @@ ANALYSIS: [short paragraph explaining the score]
         var currentProvider = "gemini";
         var SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
         var outputFiles = {};
+        var currentPdfUrl = null;
 
         // ── Init ─────────────────────────────────────────────────────
         window.addEventListener("DOMContentLoaded", function () {
@@ -1228,6 +1405,13 @@ ANALYSIS: [short paragraph explaining the score]
             setProvider(savedProvider, true);
             restoreFile("cv");
             restoreFile("cl");
+            injectTransparentScoringUI();
+
+            var savedIntensity = localStorage.getItem("cv_intensity");
+            if (savedIntensity) {
+                var el = document.getElementById("tailor-intensity");
+                if (el) el.value = savedIntensity;
+            }
 
             var jdEl = document.getElementById("jd");
             jdEl.addEventListener("input", function () {
@@ -1242,12 +1426,11 @@ ANALYSIS: [short paragraph explaining the score]
             currentProvider = p;
             if (!silent) localStorage.setItem("cv_provider", p);
 
-            // update tabs
             Object.keys(PROVIDERS).forEach(function (key) {
-                document.getElementById("tab-" + key).classList.toggle("active", key === p);
+                var tab = document.getElementById("tab-" + key);
+                if (tab) tab.classList.toggle("active", key === p);
             });
 
-            // update model dropdown
             var sel = document.getElementById("model-select");
             sel.innerHTML = "";
             PROVIDERS[p].models.forEach(function (m) {
@@ -1257,11 +1440,9 @@ ANALYSIS: [short paragraph explaining the score]
                 sel.appendChild(opt);
             });
 
-            // restore saved model
             var savedModel = localStorage.getItem("cv_model_" + p);
             if (savedModel) sel.value = savedModel;
 
-            // restore key
             var savedKey = localStorage.getItem("cv_key_" + p) || "";
             document.getElementById("api-key").value = savedKey;
             document.getElementById("api-key").placeholder = PROVIDERS[p].keyPlaceholder;
@@ -1275,7 +1456,8 @@ ANALYSIS: [short paragraph explaining the score]
                 saveBtn.classList.remove("saved");
             }
 
-            document.getElementById("footer-provider").textContent = PROVIDERS[p].name.toLowerCase() + " · latexonline.cc";
+            document.getElementById("footer-provider").textContent =
+                PROVIDERS[p].name.toLowerCase() + " · latexonline.cc";
         }
 
         function saveModelChoice() {
@@ -1292,13 +1474,23 @@ ANALYSIS: [short paragraph explaining the score]
             btn.classList.add("saved");
         }
 
+        function saveIntensity() {
+            var el = document.getElementById("tailor-intensity");
+            if (el) localStorage.setItem("cv_intensity", el.value);
+        }
+
         // ── File handling ────────────────────────────────────────────
         function loadFile(type) {
             var inputId = type + "-input";
             var file = document.getElementById(inputId).files[0];
             if (!file) return;
             var ext = file.name.split(".").pop().toLowerCase();
-            if (ext !== "tex") { showError("Only .tex files are accepted."); return; }
+
+            if (ext !== "tex") {
+                showError("Only .tex files are accepted in this version.");
+                return;
+            }
+
             var reader = new FileReader();
             reader.onload = function (e) {
                 localStorage.setItem("base_" + type + "_content", e.target.result);
@@ -1336,17 +1528,13 @@ ANALYSIS: [short paragraph explaining the score]
             document.getElementById(type + "-title").textContent = "✓ " + name;
             document.getElementById(type + "-sub").textContent = ext === "tex"
                 ? "LaTeX — full formatting preserved"
-                : ext.toUpperCase() + " — text extracted, clean LaTeX template applied";
+                : ext.toUpperCase() + " — text extracted, clean template applied";
 
-            // show warning if any non-tex file is loaded
             var cvExt = localStorage.getItem("base_cv_ext") || "tex";
             var clExt = localStorage.getItem("base_cl_ext") || "tex";
             var warn = document.getElementById("fmt-warning");
-            if (cvExt !== "tex" || clExt !== "tex") {
-                warn.classList.add("show");
-            } else {
-                warn.classList.remove("show");
-            }
+            if (cvExt !== "tex" || clExt !== "tex") warn.classList.add("show");
+            else warn.classList.remove("show");
         }
 
         function getFileForPrompt(type) {
@@ -1355,6 +1543,267 @@ ANALYSIS: [short paragraph explaining the score]
             var ext = localStorage.getItem("base_" + type + "_ext") || "tex";
             var ftype = localStorage.getItem("base_" + type + "_type") || "text";
             return { content: content, name: name, ext: ext, ftype: ftype };
+        }
+
+        // ── Transparent scoring UI helpers ───────────────────────────
+        function injectTransparentScoringUI() {
+            var scoreLabels = document.querySelectorAll("#score-card .score-label");
+            if (scoreLabels[0]) scoreLabels[0].textContent = "Original Application Match";
+            if (scoreLabels[1]) scoreLabels[1].textContent = "Tailored Application Match";
+
+            var keywordHeaders = document.querySelectorAll("#score-card .ats-kw-group strong");
+            if (keywordHeaders[0]) keywordHeaders[0].textContent = "Matching Signals";
+            if (keywordHeaders[1]) keywordHeaders[1].textContent = "Missing Signals";
+            if (keywordHeaders[2]) keywordHeaders[2].textContent = "Matching Signals";
+            if (keywordHeaders[3]) keywordHeaders[3].textContent = "Missing Signals";
+
+            var analysisHeader = document.querySelector("#ats-details .ats-analysis-text strong");
+            if (analysisHeader) analysisHeader.textContent = "Recruiter Read";
+
+            var origBox = document.getElementById("orig-ats-missing");
+            var tailBox = document.getElementById("ats-missing");
+
+            if (origBox && !document.getElementById("orig-breakdown-grid")) {
+                var origBreak = document.createElement("div");
+                origBreak.id = "orig-breakdown-grid";
+                origBreak.className = "breakdown-grid";
+                origBreak.style.marginTop = "1rem";
+                origBreak.style.display = "grid";
+                origBreak.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
+                origBreak.style.gap = "0.45rem";
+                origBreak.style.fontSize = "0.64rem";
+                origBreak.style.borderTop = "1px solid var(--border)";
+                origBreak.style.paddingTop = "0.8rem";
+                origBox.parentElement.appendChild(origBreak);
+            }
+
+            if (tailBox && !document.getElementById("tailored-breakdown-grid")) {
+                var tailBreak = document.createElement("div");
+                tailBreak.id = "tailored-breakdown-grid";
+                tailBreak.className = "breakdown-grid";
+                tailBreak.style.marginTop = "1rem";
+                tailBreak.style.display = "grid";
+                tailBreak.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
+                tailBreak.style.gap = "0.45rem";
+                tailBreak.style.fontSize = "0.64rem";
+                tailBreak.style.borderTop = "1px solid var(--border)";
+                tailBreak.style.paddingTop = "0.8rem";
+                tailBox.parentElement.appendChild(tailBreak);
+            }
+
+            if (!document.getElementById("score-card-note")) {
+                var note = document.createElement("div");
+                note.id = "score-card-note";
+                note.style.marginTop = "0.9rem";
+                note.style.fontSize = "0.64rem";
+                note.style.color = "var(--muted)";
+                note.style.lineHeight = "1.6";
+                note.textContent =
+                    "This score is computed in-browser from transparent rules: hard requirements, skills coverage, evidence strength, role alignment, and format compatibility. It is not a vendor-specific ATS score.";
+                document.getElementById("score-card").appendChild(note);
+            }
+        }
+
+        function renderBreakdown(targetId, breakdown) {
+            var target = document.getElementById(targetId);
+            if (!target) return;
+
+            var labels = {
+                hard_requirements: "Hard Req.",
+                skills_coverage: "Skills",
+                evidence_strength: "Evidence",
+                role_alignment: "Role Fit",
+                format_compatibility: "Format"
+            };
+
+            var html = Object.keys(labels).map(function (k) {
+                return (
+                    '<div style="border:1px solid var(--border); padding:0.45rem; background:var(--surface2); text-align:center;">' +
+                    '<div style="color:var(--muted); font-size:0.58rem; margin-bottom:0.2rem;">' + labels[k] + '</div>' +
+                    '<div style="color:var(--text); font-weight:700;">' + (breakdown[k] || 0) + '</div>' +
+                    '</div>'
+                );
+            }).join("");
+
+            target.innerHTML = html;
+        }
+
+        // ── Deterministic scoring engine ──────────────────────────────
+        function normalizeText(text) {
+            return (text || "")
+                .toLowerCase()
+                .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?(\{[^}]*\})?/g, " ")
+                .replace(/[^\p{L}\p{N}\s+#-]/gu, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function unique(arr) {
+            return Array.from(new Set((arr || []).filter(Boolean)));
+        }
+
+        function countMatches(text, terms) {
+            var t = " " + normalizeText(text) + " ";
+            var found = [];
+            (terms || []).forEach(function (term) {
+                var n = normalizeText(term);
+                if (!n) return;
+                if (t.indexOf(" " + n + " ") !== -1) found.push(term);
+            });
+            return unique(found);
+        }
+
+        function extractResumeTextFromTex(tex) {
+            return (tex || "")
+                .replace(/%.*$/gm, " ")
+                .replace(/\\item/g, "\n- ")
+                .replace(/\\resumeItem/g, "\n- ")
+                .replace(/\\resumeSubheading/g, "\n")
+                .replace(/\\section\*?\{([^}]*)\}/g, "\n\n$1\n")
+                .replace(/\\subsection\*?\{([^}]*)\}/g, "\n\n$1\n")
+                .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?/g, " ")
+                .replace(/[{}]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function requirementMatched(resumeText, req, synonymMap) {
+            var candidates = [req];
+            if (synonymMap && synonymMap[req]) {
+                candidates = candidates.concat(synonymMap[req]);
+            }
+            return countMatches(resumeText, candidates).length > 0;
+        }
+
+        function scoreHardRequirements(resumeText, jdProfile) {
+            var reqs = jdProfile.hard_requirements || [];
+            if (!reqs.length) return { score: 30, matched: [], missing: [] };
+
+            var matched = [];
+            var missing = [];
+
+            reqs.forEach(function (r) {
+                var reqText = typeof r === "string" ? r : r.requirement;
+                if (requirementMatched(resumeText, reqText, jdProfile.synonym_map)) matched.push(reqText);
+                else missing.push(reqText);
+            });
+
+            var ratio = matched.length / reqs.length;
+            return {
+                score: Math.round(ratio * 30),
+                matched: matched,
+                missing: missing
+            };
+        }
+
+        function scoreSkillsCoverage(resumeText, jdProfile) {
+            var keywords = []
+                .concat(jdProfile.core_keywords || [])
+                .concat(jdProfile.tools_and_technologies || [])
+                .concat((jdProfile.preferred_requirements || []).map(function (r) {
+                    return typeof r === "string" ? r : r.requirement;
+                }));
+
+            keywords = unique(keywords);
+            if (!keywords.length) return { score: 25, matched: [], missing: [] };
+
+            var matched = [];
+            var missing = [];
+
+            keywords.forEach(function (k) {
+                if (requirementMatched(resumeText, k, jdProfile.synonym_map)) matched.push(k);
+                else missing.push(k);
+            });
+
+            var ratio = matched.length / keywords.length;
+            return {
+                score: Math.round(ratio * 25),
+                matched: matched,
+                missing: missing
+            };
+        }
+
+        function scoreEvidenceStrength(resumeText) {
+            var text = resumeText || "";
+            var score = 0;
+
+            var hasNumbers = /\b\d+(\.\d+)?%?\b/.test(text);
+            var hasActionVerbs = /\b(built|developed|led|automated|optimized|analyzed|designed|implemented|created|improved|reduced|increased|delivered|entwickelt|gebaut|geleitet|automatisiert|optimiert|analysiert|entworfen|implementiert|erstellt|verbessert|reduziert|gesteigert|geliefert)\b/i.test(text);
+            var hasOutcomeLanguage = /\b(reduced|increased|improved|saved|delivered|achieved|resulted in|used by|supporting|reduziert|gesteigert|verbessert|gespart|geliefert|erreicht|führte zu|unterstützt)\b/i.test(text);
+            var hasTools = /\b(python|sql|power bi|tableau|excel|knime|alteryx|pytorch|tensorflow|r|sas|java|aws|azure|gcp)\b/i.test(text);
+
+            if (hasNumbers) score += 6;
+            if (hasActionVerbs) score += 5;
+            if (hasOutcomeLanguage) score += 5;
+            if (hasTools) score += 4;
+
+            return { score: Math.min(score, 20) };
+        }
+
+        function scoreRoleAlignment(resumeText, jdProfile) {
+            var title = normalizeText(jdProfile.job_title || "");
+            var roleFamily = normalizeText(jdProfile.role_family || "");
+            var domain = normalizeText(jdProfile.industry_or_domain || "");
+            var text = normalizeText(resumeText);
+            var score = 0;
+
+            if (title && text.indexOf(title) !== -1) score += 6;
+            else if (roleFamily && text.indexOf(roleFamily) !== -1) score += 5;
+
+            if (domain && text.indexOf(domain) !== -1) score += 3;
+
+            var businessTerms = jdProfile.evidence_priorities || [];
+            var matched = countMatches(text, businessTerms);
+            score += Math.min(matched.length, 4);
+
+            return { score: Math.min(score, 15) };
+        }
+
+        function scoreFormatCompatibility(resumeText) {
+            var text = resumeText || "";
+            var score = 0;
+            var issues = [];
+
+            if (/experience|erfahrung|berufserfahrung/i.test(text)) score += 2;
+            else issues.push("No clearly detectable Experience section");
+
+            if (/education|ausbildung|studium/i.test(text)) score += 2;
+            else issues.push("No clearly detectable Education section");
+
+            if (/skills|kenntnisse|fähigkeiten/i.test(text)) score += 2;
+            else issues.push("No clearly detectable Skills section");
+
+            if (/\b\d{4}\b/.test(text)) score += 2;
+            else issues.push("Dates are not easy to detect");
+
+            if (/@|\+?\d[\d\s()-]{6,}/.test(text)) score += 2;
+            else issues.push("Contact information may be hard to parse");
+
+            return { score: Math.min(score, 10), issues: issues };
+        }
+
+        function scoreApplication(texContent, jdProfile) {
+            var resumeText = extractResumeTextFromTex(texContent);
+
+            var hard = scoreHardRequirements(resumeText, jdProfile);
+            var skills = scoreSkillsCoverage(resumeText, jdProfile);
+            var evidence = scoreEvidenceStrength(resumeText);
+            var role = scoreRoleAlignment(resumeText, jdProfile);
+            var format = scoreFormatCompatibility(resumeText);
+
+            return {
+                total: hard.score + skills.score + evidence.score + role.score + format.score,
+                breakdown: {
+                    hard_requirements: hard.score,
+                    skills_coverage: skills.score,
+                    evidence_strength: evidence.score,
+                    role_alignment: role.score,
+                    format_compatibility: format.score
+                },
+                matched: unique((hard.matched || []).concat(skills.matched || [])),
+                missing: unique((hard.missing || []).concat(skills.missing || [])),
+                formatIssues: format.issues || []
+            };
         }
 
         // ── UI helpers ───────────────────────────────────────────────
@@ -1382,8 +1831,19 @@ ANALYSIS: [short paragraph explaining the score]
         function extractBlock(text, tag) {
             var re = new RegExp("<" + tag + ">([\\s\\S]*?)<\\/" + tag + ">");
             var m = text.match(re);
-            if (!m) throw new Error("Model did not return a <" + tag + "> block.\n\nRaw response start:\n" + text.slice(0, 600));
+            if (!m) {
+                throw new Error("Model did not return a <" + tag + "> block.\n\nRaw response start:\n" + text.slice(0, 800));
+            }
             return m[1].trim();
+        }
+
+        function renderBadges(kwsStr, isMissing) {
+            if (!kwsStr || kwsStr.toLowerCase() === "none") return "<em>None</em>";
+            var kws = kwsStr.split(",").filter(function (k) { return k.trim() !== ""; });
+            if (!kws.length) return "<em>None</em>";
+            return kws.map(function (k) {
+                return '<span class="kw-badge' + (isMissing ? ' missing' : '') + '">' + k.trim() + '</span>';
+            }).join("");
         }
 
         // ── AI call (multi-provider) ─────────────────────────────────
@@ -1476,11 +1936,8 @@ ANALYSIS: [short paragraph explaining the score]
             if (isTex) {
                 return "\n<" + label + " format=\"tex\">\n" + fileData.content + "\n</" + label + ">\n";
             } else {
-                // extracted text from PDF/DOC — use content, apply clean template
                 return "\n<" + label + " format=\"extracted_text\" source=\"" + fileData.ext + "\">\n" +
-                    "The following is text extracted from a " + fileData.ext.toUpperCase() + " file. " +
-                    "Use a clean standard LaTeX article template. " +
-                    "Populate it with ONLY the factual content below — do not invent, omit, or change any names, dates, institutions, or results.\n\n" +
+                    "The following is text extracted from a " + fileData.ext.toUpperCase() + " file.\n\n" +
                     fileData.content +
                     "\n</" + label + ">\n";
             }
@@ -1496,16 +1953,15 @@ ANALYSIS: [short paragraph explaining the score]
                     resources: [{ main: true, content: texContent }]
                 })
             });
+
             if (!res.ok) {
                 var data = await res.json();
-                var log = (data.log_files && data.log_files["__main_document__.log"]) ? data.log_files["__main_document__.log"] : "";
-                var errorLine = "";
-                var lines = log.split("\n");
-                for (var i = 0; i < lines.length; i++) {
-                    if (lines[i].indexOf("!") === 0) { errorLine = lines[i]; break; }
-                }
+                var log = (data.log_files && data.log_files["__main_document__.log"])
+                    ? data.log_files["__main_document__.log"]
+                    : "";
                 throw new Error("LaTeX compile failed for " + filename + ":\n" + log.slice(0, 3000));
             }
+
             return await res.blob();
         }
 
@@ -1519,7 +1975,9 @@ ANALYSIS: [short paragraph explaining the score]
             btn.onclick = function () {
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement("a");
-                a.href = url; a.download = filename; a.click();
+                a.href = url;
+                a.download = filename;
+                a.click();
                 URL.revokeObjectURL(url);
             };
             document.getElementById("dl-list").appendChild(btn);
@@ -1531,24 +1989,47 @@ ANALYSIS: [short paragraph explaining the score]
             var model = document.getElementById("model-select").value;
             var jd = document.getElementById("jd").value.trim();
 
-            if (!apiKey) { showError("Add your " + PROVIDERS[currentProvider].name + " API key first."); return; }
-            if (!jd) { showError("Paste a job description first."); return; }
+            if (!apiKey) {
+                showError("Add your " + PROVIDERS[currentProvider].name + " API key first.");
+                return;
+            }
+            if (!jd) {
+                showError("Paste a job description first.");
+                return;
+            }
 
             var cvFile = getFileForPrompt("cv");
             var clFile = getFileForPrompt("cl");
-            if (!cvFile.content) { showError("Upload your base CV file first."); return; }
 
-            // reset UI
+            if (!cvFile.content) {
+                showError("Upload your base CV file first.");
+                return;
+            }
+
             document.getElementById("error-box").classList.remove("show");
             document.getElementById("downloads").classList.remove("show");
             document.getElementById("score-card").classList.remove("show");
             document.getElementById("ats-details").style.display = "none";
+            document.getElementById("outreach-card").style.display = "none";
+            document.getElementById("pdf-preview-card").style.display = "none";
             document.getElementById("dl-list").innerHTML = "";
             document.getElementById("progress-wrap").classList.add("show");
             document.getElementById("gen-btn").disabled = true;
             outputFiles = {};
 
-            var stepNums = { "step-meta": "1", "step-gen": "2", "step-cv-pdf": "3", "step-cl-pdf": "4", "step-zip": "5" };
+            if (currentPdfUrl) {
+                URL.revokeObjectURL(currentPdfUrl);
+                currentPdfUrl = null;
+            }
+
+            var stepNums = {
+                "step-meta": "1",
+                "step-gen": "2",
+                "step-cv-pdf": "3",
+                "step-cl-pdf": "4",
+                "step-zip": "5"
+            };
+
             Object.keys(stepNums).forEach(function (id) {
                 document.getElementById(id).className = "step";
                 document.getElementById(id).querySelector(".step-icon").textContent = stepNums[id];
@@ -1560,10 +2041,12 @@ ANALYSIS: [short paragraph explaining the score]
                 setProgress(5, "Extracting company & job title...");
 
                 var metaText = await callAI(
-                    apiKey, model,
+                    apiKey,
+                    model,
                     "You are a precise metadata extractor. Respond only with the requested XML tags, no other text.",
                     "Extract the company name and job title from this job description.\nRespond with ONLY:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
                 );
+
                 var companyName = extractBlock(metaText, "company");
                 var jobTitle = extractBlock(metaText, "job_title");
                 document.getElementById("detected").textContent = "detected: " + companyName + " — " + jobTitle;
@@ -1576,34 +2059,47 @@ ANALYSIS: [short paragraph explaining the score]
                 var cvSection = buildFileSection("base_cv", cvFile);
                 var clSection = clFile.content
                     ? buildFileSection("base_cover_letter", clFile)
-                    : "\n<base_cover_letter>\nNone provided — use a clean professional letter.cls layout.\n</base_cover_letter>\n";
+                    : "\n<base_cover_letter>\nNone provided — create a concise professional LaTeX cover letter using only facts from the CV and JD.\n</base_cover_letter>\n";
+
+                var intensity = document.getElementById("tailor-intensity").value;
 
                 var genPrompt =
-                    "company_name: " + companyName + "\n" +
-                    "job_title: " + jobTitle + "\n\n" +
+                    "company_name_hint: " + companyName + "\n" +
+                    "job_title_hint: " + jobTitle + "\n" +
+                    "tailoring_intensity: " + intensity + "\n\n" +
                     "<job_description>\n" + jd + "\n</job_description>\n" +
-                    cvSection + clSection +
-                    "\nNow produce the three tagged blocks. For <cv> and <cover_letter>: " +
-                    "if base files are LaTeX, copy the preamble EXACTLY character for character. " +
-                    "If base files are PDF/DOC, faithfully recreate the visual layout in LaTeX. " +
-                    "Only edit text content to match the job description.";
+                    cvSection +
+                    clSection +
+                    "\nInstructions:\n" +
+                    "1. Extract a structured hiring profile from the JD into <jd_profile> JSON.\n" +
+                    "2. Tailor the CV truthfully and defensibly.\n" +
+                    "3. Tailor the cover letter truthfully and specifically.\n" +
+                    "4. Produce a recruiter-style first-pass review in <recruiter_review>.\n" +
+                    "5. Produce the interview prep guide.\n" +
+                    "6. Produce a cold email and LinkedIn note.\n" +
+                    "7. Do NOT generate any ATS score, match percentage, keyword score, or numeric rating.\n" +
+                    "8. Return EXACTLY the required tagged blocks and nothing else.\n";
 
                 var genText = await callAI(apiKey, model, SYSTEM_PROMPT, genPrompt);
 
                 var cvTex = extractBlock(genText, "cv");
                 var clTex = extractBlock(genText, "cover_letter");
                 var prepMd = extractBlock(genText, "prep_guide");
+                var jdProfileRaw = extractBlock(genText, "jd_profile");
+                var recruiterReview = extractBlock(genText, "recruiter_review");
+                var coldEmailTxt = extractBlock(genText, "cold_email");
+                var linkedinTxt = extractBlock(genText, "linkedin_note");
 
-                var atsAnalysisBlock = extractBlock(genText, "ats_analysis");
-                var scoreMatch = atsAnalysisBlock.match(/SCORE:\s*(\d+)/i);
-                var matchingMatch = atsAnalysisBlock.match(/MATCHING:\s*(.+)/i);
-                var missingMatch = atsAnalysisBlock.match(/MISSING:\s*(.+)/i);
-                var analysisMatch = atsAnalysisBlock.match(/ANALYSIS:\s*([\s\S]+)/i);
+                var jdProfile;
+                try {
+                    var cleanJson = jdProfileRaw.replace(/^```(json)?\s*/gm, '').replace(/```$/gm, '').trim();
+                    jdProfile = JSON.parse(cleanJson);
+                } catch (err) {
+                    throw new Error("Model returned invalid <jd_profile> JSON.\n\n" + jdProfileRaw.slice(0, 1200));
+                }
 
-                var atsScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-                var atsMatching = matchingMatch ? matchingMatch[1].trim() : "";
-                var atsMissing = missingMatch ? missingMatch[1].trim() : "";
-                var atsAnalysis = analysisMatch ? analysisMatch[1].trim() : "";
+                var originalScore = scoreApplication(cvFile.content, jdProfile);
+                var tailoredScore = scoreApplication(cvTex, jdProfile);
 
                 var cap = companyName.replace(/\s+/g, "_");
                 var folderKey = companyName.replace(/\s+/g, "_") + "_" + jobTitle.replace(/\s+/g, "_");
@@ -1612,22 +2108,29 @@ ANALYSIS: [short paragraph explaining the score]
                 var cvPdfName = "CV_" + cap + ".pdf";
                 var clPdfName = "Cover_" + cap + ".pdf";
                 var prepName = "Interview_Prep_" + cap + ".md";
+                var recruiterName = "Recruiter_Read_" + cap + ".md";
+                var jdProfileName = "JD_Profile_" + cap + ".json";
 
                 addDownloadButton(cvTexName, new Blob([cvTex], { type: "text/plain" }));
                 addDownloadButton(clTexName, new Blob([clTex], { type: "text/plain" }));
                 addDownloadButton(prepName, new Blob([prepMd], { type: "text/markdown" }));
+                addDownloadButton(recruiterName, new Blob([recruiterReview], { type: "text/markdown" }));
+                addDownloadButton(jdProfileName, new Blob([JSON.stringify(jdProfile, null, 2)], { type: "application/json" }));
+
                 setStep("step-gen", "done");
 
                 // 3 — compile CV
                 setStep("step-cv-pdf", "active");
                 setProgress(55, "Compiling CV to PDF...");
-                addDownloadButton(cvPdfName, await compileTex(cvTex, cvTexName));
+                var cvPdfBlob = await compileTex(cvTex, cvTexName);
+                addDownloadButton(cvPdfName, cvPdfBlob);
                 setStep("step-cv-pdf", "done");
 
                 // 4 — compile cover letter
                 setStep("step-cl-pdf", "active");
                 setProgress(75, "Compiling cover letter to PDF...");
-                addDownloadButton(clPdfName, await compileTex(clTex, clTexName));
+                var clPdfBlob = await compileTex(clTex, clTexName);
+                addDownloadButton(clPdfName, clPdfBlob);
                 setStep("step-cl-pdf", "done");
 
                 // 5 — zip
@@ -1635,63 +2138,108 @@ ANALYSIS: [short paragraph explaining the score]
                 setProgress(90, "Packaging files...");
                 var zip = new JSZip();
                 var folder = zip.folder(folderKey);
-                Object.keys(outputFiles).forEach(function (name) { folder.file(name, outputFiles[name]); });
+                Object.keys(outputFiles).forEach(function (name) {
+                    folder.file(name, outputFiles[name]);
+                });
                 var zipBlob = await zip.generateAsync({ type: "blob" });
+
                 document.getElementById("dl-all-btn").onclick = function () {
                     var url = URL.createObjectURL(zipBlob);
                     var a = document.createElement("a");
-                    a.href = url; a.download = folderKey + ".zip"; a.click();
+                    a.href = url;
+                    a.download = folderKey + ".zip";
+                    a.click();
                     URL.revokeObjectURL(url);
                 };
 
                 setStep("step-zip", "done");
                 setProgress(100, "Done.");
+
+                // ── Score card render ──────────────────────────────────
                 document.getElementById("score-card").classList.add("show");
 
-                // Animate score
+                var origAtsScore = originalScore.total;
+                var atsScore = tailoredScore.total;
+
+                var origAtsMatching = originalScore.matched.join(", ");
+                var origAtsMissing = originalScore.missing.join(", ");
+                var atsMatching = tailoredScore.matched.join(", ");
+                var atsMissing = tailoredScore.missing.join(", ");
+                var atsAnalysis = recruiterReview;
+
                 var scoreValueEl = document.getElementById("score-value");
                 var scoreFillEl = document.getElementById("score-fill");
+                var origScoreValueEl = document.getElementById("orig-score-value");
+                var origScoreFillEl = document.getElementById("orig-score-fill");
+
                 scoreValueEl.textContent = atsScore + "%";
+                origScoreValueEl.textContent = origAtsScore + "%";
+
                 setTimeout(function () {
                     scoreFillEl.style.width = atsScore + "%";
+                    origScoreFillEl.style.width = origAtsScore + "%";
                 }, 100);
 
-                // Set color based on score
-                if (atsScore >= 80) {
-                    scoreValueEl.style.color = "var(--green)";
-                    scoreFillEl.style.background = "var(--green)";
-                    scoreFillEl.style.boxShadow = "0 0 10px rgba(63, 185, 80, 0.4)";
-                } else if (atsScore >= 60) {
-                    scoreValueEl.style.color = "var(--orange)";
-                    scoreFillEl.style.background = "var(--orange)";
-                    scoreFillEl.style.boxShadow = "0 0 10px rgba(255, 165, 2, 0.4)";
-                } else {
-                    scoreValueEl.style.color = "var(--red)";
-                    scoreFillEl.style.background = "var(--red)";
-                    scoreFillEl.style.boxShadow = "0 0 10px rgba(255, 71, 87, 0.4)";
-                }
-
-                // Render keywords
-                var renderBadges = function (kwsStr, isMissing) {
-                    if (!kwsStr || kwsStr.toLowerCase() === "none") return "<em>None</em>";
-                    var kws = kwsStr.split(',').filter(function (k) { return k.trim() !== ""; });
-                    if (kws.length === 0) return "<em>None</em>";
-                    return kws.map(function (k) {
-                        return '<span class="kw-badge' + (isMissing ? ' missing' : '') + '">' + k.trim() + '</span>';
-                    }).join('');
+                var setScoreColors = function (valEl, fillEl, score) {
+                    if (score >= 80) {
+                        valEl.style.color = "var(--green)";
+                        fillEl.style.background = "var(--green)";
+                        fillEl.style.boxShadow = "0 0 10px rgba(63, 185, 80, 0.4)";
+                    } else if (score >= 60) {
+                        valEl.style.color = "var(--orange)";
+                        fillEl.style.background = "var(--orange)";
+                        fillEl.style.boxShadow = "0 0 10px rgba(255, 165, 2, 0.4)";
+                    } else {
+                        valEl.style.color = "var(--red)";
+                        fillEl.style.background = "var(--red)";
+                        fillEl.style.boxShadow = "0 0 10px rgba(255, 71, 87, 0.4)";
+                    }
                 };
 
+                setScoreColors(scoreValueEl, scoreFillEl, atsScore);
+                setScoreColors(origScoreValueEl, origScoreFillEl, origAtsScore);
+
+                document.getElementById("orig-ats-matching").innerHTML = renderBadges(origAtsMatching, false);
+                document.getElementById("orig-ats-missing").innerHTML = renderBadges(origAtsMissing, true);
                 document.getElementById("ats-matching").innerHTML = renderBadges(atsMatching, false);
                 document.getElementById("ats-missing").innerHTML = renderBadges(atsMissing, true);
-                document.getElementById("ats-analysis-text").textContent = atsAnalysis;
+
+                renderBreakdown("orig-breakdown-grid", originalScore.breakdown);
+                renderBreakdown("tailored-breakdown-grid", tailoredScore.breakdown);
+
+                if (typeof marked !== 'undefined') {
+                    document.getElementById("ats-analysis-text").innerHTML = marked.parse(atsAnalysis);
+                } else {
+                    document.getElementById("ats-analysis-text").textContent = atsAnalysis;
+                }
                 document.getElementById("ats-details").style.display = "block";
+
+                // ── Outreach ───────────────────────────────────────────
+                document.getElementById("ce-text").value = coldEmailTxt;
+                document.getElementById("li-text").value = linkedinTxt;
+                document.getElementById("li-count").textContent = linkedinTxt.length;
+                if (linkedinTxt.length > 300) {
+                    document.getElementById("li-count").parentElement.style.color = "var(--red)";
+                } else {
+                    document.getElementById("li-count").parentElement.style.color = "var(--muted)";
+                }
+                document.getElementById("outreach-card").style.display = "block";
+
+                // ── PDF preview ────────────────────────────────────────
+                currentPdfUrl = URL.createObjectURL(cvPdfBlob);
+                var iframe = document.getElementById("pdf-iframe");
+                iframe.src = currentPdfUrl;
+                document.getElementById("preview-open-btn").href = currentPdfUrl;
+                document.getElementById("pdf-preview-card").style.display = "block";
 
                 document.getElementById("downloads").classList.add("show");
 
             } catch (e) {
                 showError(e.message);
                 ["step-meta", "step-gen", "step-cv-pdf", "step-cl-pdf", "step-zip"].forEach(function (id) {
-                    if (document.getElementById(id).classList.contains("active")) setStep(id, "error");
+                    if (document.getElementById(id).classList.contains("active")) {
+                        setStep(id, "error");
+                    }
                 });
             } finally {
                 document.getElementById("gen-btn").disabled = false;
