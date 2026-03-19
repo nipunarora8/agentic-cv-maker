@@ -2,819 +2,912 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agentic CV Maker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
-    rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-  <style>
-    :root {
-      --bg: #07080a;
-      --surface: #0f1115;
-      --surface2: #13161b;
-      --surface3: #191d24;
-      --border: #1e2128;
-      --border-bright: #2e3340;
-      --text: #e8eaf0;
-      --muted: #555c70;
-      --accent: #c8f135;
-      --accent-dim: rgba(200, 241, 53, 0.07);
-      --accent-glow: rgba(200, 241, 53, 0.15);
-      --red: #ff4757;
-      --green: #3fb950;
-      --orange: #ffa502;
-      --blue: #58a6ff;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: linear-gradient(rgba(200, 241, 53, 0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 241, 53, 0.022) 1px, transparent 1px);
-      background-size: 52px 52px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      top: -15%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 500px;
-      background: radial-gradient(ellipse, rgba(200, 241, 53, 0.045) 0%, transparent 65%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 3.5rem 2rem 6rem;
-    }
-
-    /* ── header ── */
-    header {
-      margin-bottom: 2.5rem;
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .eyebrow {
-      font-size: 0.65rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .eyebrow::before {
-      content: '';
-      width: 18px;
-      height: 1px;
-      background: var(--accent);
-      display: inline-block;
-    }
-
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.4rem);
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -0.025em;
-    }
-
-    h1 em {
-      color: var(--accent);
-      font-style: normal;
-    }
-
-    .subtitle {
-      margin-top: 0.8rem;
-      font-size: 0.78rem;
-      color: var(--muted);
-      line-height: 1.8;
-      max-width: 500px;
-    }
-
-    /* ── section label ── */
-    .slabel {
-      font-size: 0.62rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.55rem;
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
-
-    .slabel::before {
-      content: '';
-      width: 10px;
-      height: 1px;
-      background: var(--muted);
-      display: inline-block;
-    }
-
-    /* ── provider selector ── */
-    .provider-section {
-      margin-bottom: 1.25rem;
-      animation: fadeUp 0.5s 0.05s ease both;
-    }
-
-    .provider-tabs {
-      display: flex;
-      gap: 0;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      overflow: hidden;
-    }
-
-    .provider-tab {
-      flex: 1;
-      padding: 0.7rem 0.5rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.18s;
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-      line-height: 1;
-    }
-
-    .provider-tab:last-child {
-      border-right: none;
-    }
-
-    .provider-tab .tab-icon {
-      font-size: 1rem;
-    }
-
-    .provider-tab:hover {
-      background: var(--surface2);
-      color: var(--text);
-    }
-
-    .provider-tab.active {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border-bottom: 2px solid var(--accent);
-    }
-
-    .provider-tab.active .tab-label {
-      color: var(--accent);
-    }
-
-    /* ── model + key row ── */
-    .model-key-row {
-      display: flex;
-      gap: 0.6rem;
-      animation: fadeUp 0.5s 0.08s ease both;
-      margin-bottom: 1.25rem;
-    }
-
-    select {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      padding: 0.62rem 0.85rem;
-      outline: none;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555c70'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      padding-right: 2rem;
-      flex: 1;
-      min-width: 0;
-    }
-
-    select:focus {
-      border-color: rgba(200, 241, 53, 0.35);
-    }
-
-    select option {
-      background: var(--surface2);
-    }
-
-    .key-input-wrap {
-      display: flex;
-      flex: 1.4;
-      gap: 0;
-      min-width: 0;
-    }
-
-    input[type="password"],
-    input[type="text"] {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-right: none;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      padding: 0.62rem 0.85rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      min-width: 0;
-    }
-
-    input::placeholder {
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    input:focus {
-      border-color: rgba(200, 241, 53, 0.35);
-      box-shadow: 0 0 0 2px var(--accent-glow);
-      z-index: 1;
-      position: relative;
-    }
-
-    .save-key-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      padding: 0.62rem 0.9rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.18s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .save-key-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .save-key-btn.saved {
-      color: var(--green);
-      border-color: var(--green);
-      background: rgba(63, 185, 80, 0.05);
-    }
-
-    /* ── file upload grid ── */
-    .files-section {
-      margin-bottom: 1.25rem;
-      animation: fadeUp 0.5s 0.1s ease both;
-    }
-
-    .files-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.6rem;
-    }
-
-    @media (max-width: 580px) {
-      .files-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .file-card {
-      background: var(--surface);
-      border: 1px dashed var(--border-bright);
-      padding: 0.9rem 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .file-card:hover {
-      border-color: var(--accent);
-      border-style: solid;
-    }
-
-    .file-card.loaded {
-      border-color: var(--green);
-      border-style: solid;
-      background: rgba(63, 185, 80, 0.04);
-    }
-
-    .file-card.loaded .fc-icon {
-      color: var(--green);
-    }
-
-    .file-card input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
-
-    .fc-icon {
-      font-size: 1.3rem;
-      flex-shrink: 0;
-      color: var(--border-bright);
-      transition: color 0.2s;
-    }
-
-    .fc-text {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .fc-title {
-      font-size: 0.72rem;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .fc-subtitle {
-      font-size: 0.62rem;
-      color: var(--muted);
-      margin-top: 0.15rem;
-    }
-
-    .fc-clear {
-      flex-shrink: 0;
-      font-size: 0.65rem;
-      padding: 0.2em 0.45em;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
-      z-index: 1;
-      position: relative;
-    }
-
-    .fc-clear:hover {
-      border-color: var(--red);
-      color: var(--red);
-    }
-
-    /* ── format hint ── */
-    .format-hint {
-      margin-top: 0.5rem;
-      font-size: 0.63rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .fmt-badge {
-      padding: 0.1em 0.45em;
-      border-radius: 2px;
-      font-size: 0.6rem;
-      border: 1px solid var(--border-bright);
-      color: var(--muted);
-    }
-
-    .fmt-badge.tex {
-      border-color: rgba(200, 241, 53, 0.3);
-      color: var(--accent);
-    }
-
-    .fmt-badge.pdf {
-      border-color: rgba(255, 165, 2, 0.3);
-      color: var(--orange);
-    }
-
-    .fmt-badge.doc {
-      border-color: rgba(88, 166, 255, 0.3);
-      color: var(--blue);
-    }
-
-    /* ── main card ── */
-    .card {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      animation: fadeUp 0.5s 0.13s ease both;
-    }
-
-    .card-header {
-      padding: 0.9rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.68rem;
-      color: var(--muted);
-    }
-
-    .card-header .filename {
-      color: var(--accent);
-      font-style: italic;
-    }
-
-    .dots {
-      display: flex;
-      gap: 5px;
-    }
-
-    .dots span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--border-bright);
-    }
-
-    .card-body {
-      padding: 1.3rem;
-    }
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.65rem;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
-    label .tag {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(200, 241, 53, 0.18);
-      padding: 0.1em 0.4em;
-      border-radius: 2px;
-      font-size: 0.6rem;
-    }
-
-    textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.76rem;
-      line-height: 1.75;
-      padding: 0.9rem;
-      resize: vertical;
-      min-height: 210px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    textarea::placeholder {
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    textarea:focus {
-      border-color: rgba(200, 241, 53, 0.35);
-      box-shadow: 0 0 0 2px var(--accent-glow);
-    }
-
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.64rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-      margin-bottom: 1.2rem;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 1.2rem 0;
-    }
-
-    /* ── generate button ── */
-    .btn-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    button.primary {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.03em;
-      padding: 0.78rem 1.7rem;
-      border: none;
-      background: var(--accent);
-      color: #07080a;
-      cursor: pointer;
-      transition: all 0.18s;
-      position: relative;
-      white-space: nowrap;
-    }
-
-    button.primary::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: white;
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-
-    button.primary:hover:not(:disabled)::after {
-      opacity: 0.1;
-    }
-
-    button.primary:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    button.primary:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    .btn-hint {
-      font-size: 0.65rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ── progress ── */
-    .progress-wrap {
-      margin-top: 1.2rem;
-      display: none;
-    }
-
-    .progress-wrap.show {
-      display: block;
-    }
-
-    .progress-label {
-      font-size: 0.65rem;
-      color: var(--muted);
-      margin-bottom: 0.35rem;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .progress-label span {
-      color: var(--accent);
-    }
-
-    .progress-track {
-      height: 2px;
-      background: var(--border);
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-      transition: width 0.4s ease;
-      box-shadow: 0 0 10px var(--accent);
-    }
-
-    .steps {
-      margin-top: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
-      font-size: 0.7rem;
-      color: var(--muted);
-      transition: color 0.3s;
-    }
-
-    .step.active {
-      color: var(--text);
-    }
-
-    .step.done {
-      color: var(--green);
-    }
-
-    .step.error {
-      color: var(--red);
-    }
-
-    .step-icon {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 1px solid var(--border-bright);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.55rem;
-      flex-shrink: 0;
-      transition: all 0.3s;
-    }
-
-    .step.active .step-icon {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
-
-    .step.done .step-icon {
-      border-color: var(--green);
-      background: rgba(63, 185, 80, 0.1);
-      color: var(--green);
-    }
-
-    .step.error .step-icon {
-      border-color: var(--red);
-      background: rgba(255, 71, 87, 0.1);
-      color: var(--red);
-    }
-
-    .spinner-inline {
-      width: 7px;
-      height: 7px;
-      border: 1.5px solid var(--border-bright);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
-    /* ── downloads ── */
-    .downloads {
-      margin-top: 1.4rem;
-      border: 1px solid rgba(200, 241, 53, 0.2);
-      background: var(--accent-dim);
-      display: none;
-    }
-
-    .downloads.show {
-      display: block;
-    }
-
-    .downloads-header {
-      padding: 0.75rem 1.1rem;
-      border-bottom: 1px solid rgba(200, 241, 53, 0.12);
-      font-size: 0.67rem;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .download-list {
-      padding: 0.65rem 1.1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .dl-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      cursor: pointer;
-      transition: all 0.18s;
-      text-align: left;
-    }
-
-    .dl-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .dl-btn .dl-size {
-      color: var(--muted);
-      font-size: 0.62rem;
-    }
-
-    .dl-all-btn {
-      margin: 0 1.1rem 0.8rem;
-      width: calc(100% - 2.2rem);
-      padding: 0.65rem;
-      background: var(--accent);
-      border: none;
-      color: #07080a;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: opacity 0.18s;
-    }
-
-    .dl-all-btn:hover {
-      opacity: 0.88;
-    }
-
-    /* ── error ── */
-    .error-box {
-      margin-top: 1rem;
-      padding: 0.8rem 1rem;
-      background: rgba(255, 71, 87, 0.07);
-      border: 1px solid rgba(255, 71, 87, 0.25);
-      color: var(--red);
-      font-size: 0.74rem;
-      display: none;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .error-box.show {
-      display: block;
-    }
-
-    .fmt-warning {
-      margin-top: 0.5rem;
-      padding: 0.6rem 0.9rem;
-      background: rgba(255, 165, 2, 0.07);
-      border: 1px solid rgba(255, 165, 2, 0.2);
-      color: var(--orange);
-      font-size: 0.67rem;
-      line-height: 1.6;
-      display: none;
-    }
-
-    .fmt-warning.show {
-      display: block;
-    }
-
-    /* ── footer ── */
-    footer {
-      margin-top: 2.5rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.64rem;
-      color: var(--muted);
-      animation: fadeUp 0.5s 0.2s ease both;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic CV Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #07080a;
+            --surface: #0f1115;
+            --surface2: #13161b;
+            --surface3: #191d24;
+            --border: #1e2128;
+            --border-bright: #2e3340;
+            --text: #e8eaf0;
+            --muted: #555c70;
+            --accent: #c8f135;
+            --accent-dim: rgba(200, 241, 53, 0.07);
+            --accent-glow: rgba(200, 241, 53, 0.15);
+            --red: #ff4757;
+            --green: #3fb950;
+            --orange: #ffa502;
+            --blue: #58a6ff;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(200, 241, 53, 0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 241, 53, 0.022) 1px, transparent 1px);
+            background-size: 52px 52px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(200, 241, 53, 0.045) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 3.5rem 2rem 6rem;
+        }
+
+        /* ── header ── */
+        header {
+            margin-bottom: 2.5rem;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 18px;
+            height: 1px;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.025em;
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+        }
+
+        .subtitle {
+            margin-top: 0.8rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.8;
+            max-width: 500px;
+        }
+
+        /* ── section label ── */
+        .slabel {
+            font-size: 0.62rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.55rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .slabel::before {
+            content: '';
+            width: 10px;
+            height: 1px;
+            background: var(--muted);
+            display: inline-block;
+        }
+
+        /* ── provider selector ── */
+        .provider-section {
+            margin-bottom: 1.25rem;
+            animation: fadeUp 0.5s 0.05s ease both;
+        }
+
+        .provider-tabs {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            overflow: hidden;
+        }
+
+        .provider-tab {
+            flex: 1;
+            padding: 0.7rem 0.5rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1;
+        }
+
+        .provider-tab:last-child {
+            border-right: none;
+        }
+
+        .provider-tab .tab-icon {
+            font-size: 1rem;
+        }
+
+        .provider-tab:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .provider-tab.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .provider-tab.active .tab-label {
+            color: var(--accent);
+        }
+
+        /* ── model + key row ── */
+        .model-key-row {
+            display: flex;
+            gap: 0.6rem;
+            animation: fadeUp 0.5s 0.08s ease both;
+            margin-bottom: 1.25rem;
+        }
+
+        select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.62rem 0.85rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555c70'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        select:focus {
+            border-color: rgba(200, 241, 53, 0.35);
+        }
+
+        select option {
+            background: var(--surface2);
+        }
+
+        .key-input-wrap {
+            display: flex;
+            flex: 1.4;
+            gap: 0;
+            min-width: 0;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-right: none;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.62rem 0.85rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            min-width: 0;
+        }
+
+        input::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        input:focus {
+            border-color: rgba(200, 241, 53, 0.35);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+            z-index: 1;
+            position: relative;
+        }
+
+        .save-key-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.62rem 0.9rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .save-key-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .save-key-btn.saved {
+            color: var(--green);
+            border-color: var(--green);
+            background: rgba(63, 185, 80, 0.05);
+        }
+
+        /* ── file upload grid ── */
+        .files-section {
+            margin-bottom: 1.25rem;
+            animation: fadeUp 0.5s 0.1s ease both;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+
+        @media (max-width: 580px) {
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .file-card {
+            background: var(--surface);
+            border: 1px dashed var(--border-bright);
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-card:hover {
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        .file-card.loaded {
+            border-color: var(--green);
+            border-style: solid;
+            background: rgba(63, 185, 80, 0.04);
+        }
+
+        .file-card.loaded .fc-icon {
+            color: var(--green);
+        }
+
+        .file-card input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .fc-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            color: var(--border-bright);
+            transition: color 0.2s;
+        }
+
+        .fc-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fc-title {
+            font-size: 0.72rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fc-subtitle {
+            font-size: 0.62rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .fc-clear {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            padding: 0.2em 0.45em;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            z-index: 1;
+            position: relative;
+        }
+
+        .fc-clear:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* ── format hint ── */
+        .format-hint {
+            margin-top: 0.5rem;
+            font-size: 0.63rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .fmt-badge {
+            padding: 0.1em 0.45em;
+            border-radius: 2px;
+            font-size: 0.6rem;
+            border: 1px solid var(--border-bright);
+            color: var(--muted);
+        }
+
+        .fmt-badge.tex {
+            border-color: rgba(200, 241, 53, 0.3);
+            color: var(--accent);
+        }
+
+        .fmt-badge.pdf {
+            border-color: rgba(255, 165, 2, 0.3);
+            color: var(--orange);
+        }
+
+        .fmt-badge.doc {
+            border-color: rgba(88, 166, 255, 0.3);
+            color: var(--blue);
+        }
+
+        /* ── main card ── */
+        .card {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            animation: fadeUp 0.5s 0.13s ease both;
+        }
+
+        .card-header {
+            padding: 0.9rem 1.4rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--muted);
+        }
+
+        .card-header .filename {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-bright);
+        }
+
+        .card-body {
+            padding: 1.3rem;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        label .tag {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(200, 241, 53, 0.18);
+            padding: 0.1em 0.4em;
+            border-radius: 2px;
+            font-size: 0.6rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.76rem;
+            line-height: 1.75;
+            padding: 0.9rem;
+            resize: vertical;
+            min-height: 210px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        textarea:focus {
+            border-color: rgba(200, 241, 53, 0.35);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.64rem;
+            color: var(--muted);
+            margin-top: 0.3rem;
+            margin-bottom: 1.2rem;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 1.2rem 0;
+        }
+
+        /* ── generate button ── */
+        .btn-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        button.primary {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.03em;
+            padding: 0.78rem 1.7rem;
+            border: none;
+            background: var(--accent);
+            color: #07080a;
+            cursor: pointer;
+            transition: all 0.18s;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        button.primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        button.primary:hover:not(:disabled)::after {
+            opacity: 0.1;
+        }
+
+        button.primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button.primary:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .btn-hint {
+            font-size: 0.65rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ── progress ── */
+        .progress-wrap {
+            margin-top: 1.2rem;
+            display: none;
+        }
+
+        .progress-wrap.show {
+            display: block;
+        }
+
+        .progress-label {
+            font-size: 0.65rem;
+            color: var(--muted);
+            margin-bottom: 0.35rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-label span {
+            color: var(--accent);
+        }
+
+        .progress-track {
+            height: 2px;
+            background: var(--border);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .steps {
+            margin-top: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.7rem;
+            color: var(--muted);
+            transition: color 0.3s;
+        }
+
+        .step.active {
+            color: var(--text);
+        }
+
+        .step.done {
+            color: var(--green);
+        }
+
+        .step.error {
+            color: var(--red);
+        }
+
+        .step-icon {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 1px solid var(--border-bright);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-icon {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .step.done .step-icon {
+            border-color: var(--green);
+            background: rgba(63, 185, 80, 0.1);
+            color: var(--green);
+        }
+
+        .step.error .step-icon {
+            border-color: var(--red);
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--red);
+        }
+
+        .spinner-inline {
+            width: 7px;
+            height: 7px;
+            border: 1.5px solid var(--border-bright);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* ── downloads ── */
+        .downloads {
+            margin-top: 1.4rem;
+            border: 1px solid rgba(200, 241, 53, 0.2);
+            background: var(--accent-dim);
+            display: none;
+        }
+
+        .downloads.show {
+            display: block;
+        }
+
+        .downloads-header {
+            padding: 0.75rem 1.1rem;
+            border-bottom: 1px solid rgba(200, 241, 53, 0.12);
+            font-size: 0.67rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .download-list {
+            padding: 0.65rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .dl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: left;
+        }
+
+        .dl-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .dl-btn .dl-size {
+            color: var(--muted);
+            font-size: 0.62rem;
+        }
+
+        .dl-all-btn {
+            margin: 0 1.1rem 0.8rem;
+            width: calc(100% - 2.2rem);
+            padding: 0.65rem;
+            background: var(--accent);
+            border: none;
+            color: #07080a;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: opacity 0.18s;
+        }
+
+        .dl-all-btn:hover {
+            opacity: 0.88;
+        }
+
+        /* ── error ── */
+        .error-box {
+            margin-top: 1rem;
+            padding: 0.8rem 1rem;
+            background: rgba(255, 71, 87, 0.07);
+            border: 1px solid rgba(255, 71, 87, 0.25);
+            color: var(--red);
+            font-size: 0.74rem;
+            display: none;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        .fmt-warning {
+            margin-top: 0.5rem;
+            padding: 0.6rem 0.9rem;
+            background: rgba(255, 165, 2, 0.07);
+            border: 1px solid rgba(255, 165, 2, 0.2);
+            color: var(--orange);
+            font-size: 0.67rem;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .fmt-warning.show {
+            display: block;
+        }
+
+        .score-card {
+            margin-top: 1.4rem;
+            padding: 1.2rem;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            display: none;
+            text-align: center;
+        }
+
+        .score-card.show {
+            display: block;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .score-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.8rem;
+        }
+
+        .score-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .ats-details {
+            margin-top: 1.5rem;
+            text-align: left;
+            font-size: 0.72rem;
+            color: var(--text);
+            line-height: 1.6;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            display: none;
+        }
+
+        .ats-kw-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .ats-kw-group strong,
+        .ats-analysis-text strong {
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .kw-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            margin: 0.2rem 0.2rem 0.2rem 0;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-family: 'DM Mono', monospace;
+            background: rgba(63, 185, 80, 0.08);
+            border: 1px solid rgba(63, 185, 80, 0.25);
+            color: var(--green);
+        }
+
+        .kw-badge.missing {
+            background: rgba(255, 71, 87, 0.08);
+            border: 1px solid rgba(255, 71, 87, 0.25);
+            color: var(--red);
+        }
+
+        /* ── footer ── */
+        footer {
+            margin-top: 2.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.64rem;
+            color: var(--muted);
+            animation: fadeUp 0.5s 0.2s ease both;
+        }
+
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <!-- ── System prompt ── -->
-  <script type="text/plain" id="system-prompt">
+    <!-- ── System prompt ── -->
+    <script type="text/plain" id="system-prompt">
 # Role: Expert Tech Career Strategist & LaTeX Tailoring Agent
 
 ## Identity & Mission
@@ -884,8 +977,14 @@ All Stretch and Weak CV bullets must appear here with specific prep notes.
 - Why they will ask it
 - Key points for a strong answer (not a script)
 
+## Step 5 — ATS Match Score & Analysis
+Act as an industry-standard Applicant Tracking System (ATS). Analyze how well the tailored CV matches the job description.
+Calculate a strong, objective match score out of 100 based on keyword density, skills alignment, and experience relevance, on par with what the industry uses.
+Identify the exact matching keywords present in both, and the important keywords missing from the CV.
+Provide a short paragraph of overall analysis.
+
 ## Output Format
-Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, no text after </prep_guide>:
+Respond with EXACTLY four tagged blocks and nothing else. No text before <cv>, no text after </ats_analysis>:
 
 <cv>
 [complete tailored LaTeX CV — full file from \documentclass to \end{document}]
@@ -899,6 +998,13 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
 [markdown interview prep guide]
 </prep_guide>
 
+<ats_analysis>
+SCORE: [integer 0-100]
+MATCHING: [comma-separated list of 5-10 keywords]
+MISSING: [comma-separated list of 3-5 keywords]
+ANALYSIS: [short paragraph explaining the score]
+</ats_analysis>
+
 ## Hard Rules
 - No fabrication. Every claim must be real and something the user can defend in an interview.
 - Metrics are sacred. Never remove, weaken, or vague-up a quantified result.
@@ -907,614 +1013,691 @@ Respond with EXACTLY three tagged blocks and nothing else. No text before <cv>, 
 - Preamble is untouchable. Copy it byte-for-byte from the base file.
 </script>
 
-  <div class="wrapper">
+    <div class="wrapper">
 
-    <header>
-      <div class="eyebrow">Career Automation</div>
-      <h1>Ship your<br><em>application.</em></h1>
-      <p class="subtitle">Paste a job description. Your chosen AI tailors your CV and cover letter, compiles PDFs, and
-        hands everything back as a ZIP — all in the browser.</p>
-    </header>
+        <header>
+            <div class="eyebrow">Career Automation</div>
+            <h1>Ship your<br><em>application.</em></h1>
+            <p class="subtitle">Paste a job description. Your chosen AI tailors your CV and cover letter, compiles PDFs,
+                and
+                hands everything back as a ZIP — all in the browser.</p>
+        </header>
 
-    <!-- ── Provider selector ── -->
-    <div class="provider-section">
-      <div class="slabel">AI Provider</div>
-      <div class="provider-tabs">
-        <button class="provider-tab active" id="tab-gemini" onclick="setProvider('gemini')">
-          <span class="tab-icon">✦</span>
-          <span class="tab-label">Gemini</span>
-        </button>
-        <button class="provider-tab" id="tab-openai" onclick="setProvider('openai')">
-          <span class="tab-icon">⬡</span>
-          <span class="tab-label">OpenAI</span>
-        </button>
-        <button class="provider-tab" id="tab-anthropic" onclick="setProvider('anthropic')">
-          <span class="tab-icon">◈</span>
-          <span class="tab-label">Anthropic</span>
-        </button>
-      </div>
+        <!-- ── Provider selector ── -->
+        <div class="provider-section">
+            <div class="slabel">AI Provider</div>
+            <div class="provider-tabs">
+                <button class="provider-tab active" id="tab-gemini" onclick="setProvider('gemini')">
+                    <span class="tab-icon">✦</span>
+                    <span class="tab-label">Gemini</span>
+                </button>
+                <button class="provider-tab" id="tab-openai" onclick="setProvider('openai')">
+                    <span class="tab-icon">⬡</span>
+                    <span class="tab-label">OpenAI</span>
+                </button>
+                <button class="provider-tab" id="tab-anthropic" onclick="setProvider('anthropic')">
+                    <span class="tab-icon">◈</span>
+                    <span class="tab-label">Anthropic</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Model + API key ── -->
+        <div class="model-key-row">
+            <select id="model-select" onchange="saveModelChoice()"></select>
+            <div class="key-input-wrap">
+                <input type="password" id="api-key" placeholder="API key — saved to localStorage" />
+                <button class="save-key-btn" id="save-key-btn" onclick="saveKey()">Save</button>
+            </div>
+        </div>
+
+        <!-- ── File upload ── -->
+        <div class="files-section">
+            <div class="slabel">Base Documents</div>
+            <div class="files-grid">
+
+                <div>
+                    <div class="file-card" id="cv-card">
+                        <input type="file" id="cv-input" accept=".tex" onchange="loadFile('cv')" />
+                        <span class="fc-icon" id="cv-icon">📄</span>
+                        <div class="fc-text">
+                            <div class="fc-title" id="cv-title">Upload Base CV</div>
+                            <div class="fc-subtitle" id="cv-sub">Your master resume file</div>
+                        </div>
+                        <button class="fc-clear" onclick="clearFile(event,'cv')" title="Clear">✕</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="file-card" id="cl-card">
+                        <input type="file" id="cl-input" accept=".tex" onchange="loadFile('cl')" />
+                        <span class="fc-icon" id="cl-icon">✉</span>
+                        <div class="fc-text">
+                            <div class="fc-title" id="cl-title">Upload Base Cover Letter</div>
+                            <div class="fc-subtitle" id="cl-sub">Your master cover letter</div>
+                        </div>
+                        <button class="fc-clear" onclick="clearFile(event,'cl')" title="Clear">✕</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="fmt-warning" id="fmt-warning">
+                ⚠ PDF/DOC detected — text content will be preserved but formatting cannot be inferred from binary files.
+                For
+                exact layout preservation, use <strong>.tex</strong>.
+            </div>
+
+            <div class="format-hint">
+                Accepted format: <span class="fmt-badge tex">.tex</span>
+                &nbsp;— LaTeX only, ensures exact formatting preservation
+            </div>
+        </div>
+
+        <!-- ── JD card ── -->
+        <div class="card">
+            <div class="card-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="filename">job_description.txt</span>
+                <span id="wc">0 words</span>
+            </div>
+            <div class="card-body">
+                <label>Job Description <span class="tag">required</span></label>
+                <textarea id="jd"
+                    placeholder="Paste the full job description here. Company name and job title are extracted automatically."></textarea>
+                <div class="meta-row">
+                    <span id="detected">company &amp; role: not yet detected</span>
+                    <span id="cc">0 chars</span>
+                </div>
+
+                <hr />
+
+                <div class="btn-row">
+                    <button class="primary" id="gen-btn" onclick="generate()">&#9889; Generate</button>
+                    <span class="btn-hint">
+                        Calls your chosen AI directly from the browser.<br>
+                        Downloads CV, cover letter &amp; prep guide as ZIP.
+                    </span>
+                </div>
+
+                <div class="progress-wrap" id="progress-wrap">
+                    <div class="progress-label">
+                        <span id="progress-text">Initializing...</span>
+                        <span id="progress-pct">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="steps">
+                        <div class="step" id="step-meta">
+                            <div class="step-icon">1</div><span>Extracting company &amp; job title</span>
+                        </div>
+                        <div class="step" id="step-gen">
+                            <div class="step-icon">2</div><span>Tailoring CV, cover letter &amp; prep guide</span>
+                        </div>
+                        <div class="step" id="step-cv-pdf">
+                            <div class="step-icon">3</div><span>Compiling CV &#8594; PDF</span>
+                        </div>
+                        <div class="step" id="step-cl-pdf">
+                            <div class="step-icon">4</div><span>Compiling cover letter &#8594; PDF</span>
+                        </div>
+                        <div class="step" id="step-zip">
+                            <div class="step-icon">5</div><span>Packaging files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-box" id="error-box"></div>
+
+                <div class="score-card" id="score-card">
+                    <div class="score-label">ATS Match Score</div>
+                    <div class="score-value" id="score-value">0%</div>
+                    <div class="score-bar">
+                        <div class="score-fill" id="score-fill"></div>
+                    </div>
+                    <div class="ats-details" id="ats-details">
+                        <div class="ats-kw-group">
+                            <strong>Matching Keywords</strong>
+                            <div id="ats-matching"></div>
+                        </div>
+                        <div class="ats-kw-group">
+                            <strong>Missing Keywords</strong>
+                            <div id="ats-missing"></div>
+                        </div>
+                        <div class="ats-analysis-text">
+                            <strong>Analysis</strong>
+                            <div id="ats-analysis-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="downloads" id="downloads">
+                    <div class="downloads-header">&#10003; &nbsp;Ready to download</div>
+                    <div class="download-list" id="dl-list"></div>
+                    <button class="dl-all-btn" id="dl-all-btn">&#8595; Download all as ZIP</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <span>agentic cv maker — open source</span>
+            <span id="footer-provider">gemini &#183; latexonline.cc</span>
+        </footer>
+
     </div>
 
-    <!-- ── Model + API key ── -->
-    <div class="model-key-row">
-      <select id="model-select" onchange="saveModelChoice()"></select>
-      <div class="key-input-wrap">
-        <input type="password" id="api-key" placeholder="API key — saved to localStorage" />
-        <button class="save-key-btn" id="save-key-btn" onclick="saveKey()">Save</button>
-      </div>
-    </div>
-
-    <!-- ── File upload ── -->
-    <div class="files-section">
-      <div class="slabel">Base Documents</div>
-      <div class="files-grid">
-
-        <div>
-          <div class="file-card" id="cv-card">
-            <input type="file" id="cv-input" accept=".tex" onchange="loadFile('cv')" />
-            <span class="fc-icon" id="cv-icon">📄</span>
-            <div class="fc-text">
-              <div class="fc-title" id="cv-title">Upload Base CV</div>
-              <div class="fc-subtitle" id="cv-sub">Your master resume file</div>
-            </div>
-            <button class="fc-clear" onclick="clearFile(event,'cv')" title="Clear">✕</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="file-card" id="cl-card">
-            <input type="file" id="cl-input" accept=".tex" onchange="loadFile('cl')" />
-            <span class="fc-icon" id="cl-icon">✉</span>
-            <div class="fc-text">
-              <div class="fc-title" id="cl-title">Upload Base Cover Letter</div>
-              <div class="fc-subtitle" id="cl-sub">Your master cover letter</div>
-            </div>
-            <button class="fc-clear" onclick="clearFile(event,'cl')" title="Clear">✕</button>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="fmt-warning" id="fmt-warning">
-        ⚠ PDF/DOC detected — text content will be preserved but formatting cannot be inferred from binary files. For
-        exact layout preservation, use <strong>.tex</strong>.
-      </div>
-
-      <div class="format-hint">
-        Accepted format: <span class="fmt-badge tex">.tex</span>
-        &nbsp;— LaTeX only, ensures exact formatting preservation
-      </div>
-    </div>
-
-    <!-- ── JD card ── -->
-    <div class="card">
-      <div class="card-header">
-        <div class="dots"><span></span><span></span><span></span></div>
-        <span class="filename">job_description.txt</span>
-        <span id="wc">0 words</span>
-      </div>
-      <div class="card-body">
-        <label>Job Description <span class="tag">required</span></label>
-        <textarea id="jd"
-          placeholder="Paste the full job description here. Company name and job title are extracted automatically."></textarea>
-        <div class="meta-row">
-          <span id="detected">company &amp; role: not yet detected</span>
-          <span id="cc">0 chars</span>
-        </div>
-
-        <hr />
-
-        <div class="btn-row">
-          <button class="primary" id="gen-btn" onclick="generate()">&#9889; Generate</button>
-          <span class="btn-hint">
-            Calls your chosen AI directly from the browser.<br>
-            Downloads CV, cover letter &amp; prep guide as ZIP.
-          </span>
-        </div>
-
-        <div class="progress-wrap" id="progress-wrap">
-          <div class="progress-label">
-            <span id="progress-text">Initializing...</span>
-            <span id="progress-pct">0%</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
-          <div class="steps">
-            <div class="step" id="step-meta">
-              <div class="step-icon">1</div><span>Extracting company &amp; job title</span>
-            </div>
-            <div class="step" id="step-gen">
-              <div class="step-icon">2</div><span>Tailoring CV, cover letter &amp; prep guide</span>
-            </div>
-            <div class="step" id="step-cv-pdf">
-              <div class="step-icon">3</div><span>Compiling CV &#8594; PDF</span>
-            </div>
-            <div class="step" id="step-cl-pdf">
-              <div class="step-icon">4</div><span>Compiling cover letter &#8594; PDF</span>
-            </div>
-            <div class="step" id="step-zip">
-              <div class="step-icon">5</div><span>Packaging files</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="error-box" id="error-box"></div>
-
-        <div class="downloads" id="downloads">
-          <div class="downloads-header">&#10003; &nbsp;Ready to download</div>
-          <div class="download-list" id="dl-list"></div>
-          <button class="dl-all-btn" id="dl-all-btn">&#8595; Download all as ZIP</button>
-        </div>
-      </div>
-    </div>
-
-    <footer>
-      <span>agentic cv maker — open source</span>
-      <span id="footer-provider">gemini &#183; latexonline.cc</span>
-    </footer>
-
-  </div>
-
-  <script>
-    // ── Provider config ──────────────────────────────────────────
-    var PROVIDERS = {
-      gemini: {
-        name: "Gemini",
-        models: [
-          { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (best)" },
-          { id: "gemini-3-flash-preview", label: "Gemini 3.0 Flash (fast)" },
-          { id: "gemini-flash-lite-latest", label: "Gemini Flash Lite (cheap)" }
-        ],
-        keyPlaceholder: "AIza... — Google AI Studio key"
-      },
-      openai: {
-        name: "OpenAI",
-        models: [
-          { id: "gpt-5.4-2026-03-05", label: "GPT-5.4 (best)" },
-          { id: "gpt-5.4-mini-2026-03-17", label: "GPT-5.4 mini (fast)" },
-          { id: "gpt-5.4-nano-2026-03-17", label: "GPT-5.4 nano (fast)" }
-        ],
-        keyPlaceholder: "sk-... — OpenAI API key"
-      },
-      anthropic: {
-        name: "Anthropic",
-        models: [
-          { id: "claude-opus-4-6", label: "Claude Opus 4 (best)" },
-          { id: "claude-sonnet-4-6", label: "Claude Sonnet 4 (balanced)" },
-          { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4 (fast)" }
-        ],
-        keyPlaceholder: "sk-ant-... — Anthropic API key"
-      }
-    };
-
-    var currentProvider = "gemini";
-    var SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
-    var outputFiles = {};
-
-    // ── Init ─────────────────────────────────────────────────────
-    window.addEventListener("DOMContentLoaded", function () {
-      var savedProvider = localStorage.getItem("cv_provider") || "gemini";
-      setProvider(savedProvider, true);
-      restoreFile("cv");
-      restoreFile("cl");
-
-      var jdEl = document.getElementById("jd");
-      jdEl.addEventListener("input", function () {
-        var t = jdEl.value.trim();
-        document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
-        document.getElementById("cc").textContent = jdEl.value.length + " chars";
-      });
-    });
-
-    // ── Provider switching ───────────────────────────────────────
-    function setProvider(p, silent) {
-      currentProvider = p;
-      if (!silent) localStorage.setItem("cv_provider", p);
-
-      // update tabs
-      Object.keys(PROVIDERS).forEach(function (key) {
-        document.getElementById("tab-" + key).classList.toggle("active", key === p);
-      });
-
-      // update model dropdown
-      var sel = document.getElementById("model-select");
-      sel.innerHTML = "";
-      PROVIDERS[p].models.forEach(function (m) {
-        var opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = m.label;
-        sel.appendChild(opt);
-      });
-
-      // restore saved model
-      var savedModel = localStorage.getItem("cv_model_" + p);
-      if (savedModel) sel.value = savedModel;
-
-      // restore key
-      var savedKey = localStorage.getItem("cv_key_" + p) || "";
-      document.getElementById("api-key").value = savedKey;
-      document.getElementById("api-key").placeholder = PROVIDERS[p].keyPlaceholder;
-
-      var saveBtn = document.getElementById("save-key-btn");
-      if (savedKey) {
-        saveBtn.textContent = "✓ Saved";
-        saveBtn.classList.add("saved");
-      } else {
-        saveBtn.textContent = "Save";
-        saveBtn.classList.remove("saved");
-      }
-
-      document.getElementById("footer-provider").textContent = PROVIDERS[p].name.toLowerCase() + " · latexonline.cc";
-    }
-
-    function saveModelChoice() {
-      var model = document.getElementById("model-select").value;
-      localStorage.setItem("cv_model_" + currentProvider, model);
-    }
-
-    function saveKey() {
-      var key = document.getElementById("api-key").value.trim();
-      if (!key) return;
-      localStorage.setItem("cv_key_" + currentProvider, key);
-      var btn = document.getElementById("save-key-btn");
-      btn.textContent = "✓ Saved";
-      btn.classList.add("saved");
-    }
-
-    // ── File handling ────────────────────────────────────────────
-    function loadFile(type) {
-      var inputId = type + "-input";
-      var file = document.getElementById(inputId).files[0];
-      if (!file) return;
-      var ext = file.name.split(".").pop().toLowerCase();
-      if (ext !== "tex") { showError("Only .tex files are accepted."); return; }
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        localStorage.setItem("base_" + type + "_content", e.target.result);
-        localStorage.setItem("base_" + type + "_name", file.name);
-        localStorage.setItem("base_" + type + "_ext", "tex");
-        localStorage.setItem("base_" + type + "_type", "text");
-        updateFileCard(type, file.name, "tex");
-      };
-      reader.readAsText(file);
-    }
-
-    function restoreFile(type) {
-      var name = localStorage.getItem("base_" + type + "_name");
-      var ext = localStorage.getItem("base_" + type + "_ext");
-      if (name) updateFileCard(type, name, ext);
-    }
-
-    function clearFile(e, type) {
-      e.preventDefault();
-      e.stopPropagation();
-      ["_content", "_name", "_ext", "_type"].forEach(function (k) {
-        localStorage.removeItem("base_" + type + k);
-      });
-      document.getElementById(type + "-card").classList.remove("loaded");
-      document.getElementById(type + "-icon").textContent = type === "cv" ? "📄" : "✉";
-      document.getElementById(type + "-title").textContent = type === "cv" ? "Upload Base CV" : "Upload Base Cover Letter";
-      document.getElementById(type + "-sub").textContent = type === "cv" ? "Your master resume file" : "Your master cover letter";
-      document.getElementById(type + "-input").value = "";
-    }
-
-    function updateFileCard(type, name, ext) {
-      var icons = { tex: "📝", pdf: "📕", doc: "📘", docx: "📘" };
-      document.getElementById(type + "-card").classList.add("loaded");
-      document.getElementById(type + "-icon").textContent = icons[ext] || "📄";
-      document.getElementById(type + "-title").textContent = "✓ " + name;
-      document.getElementById(type + "-sub").textContent = ext === "tex"
-        ? "LaTeX — full formatting preserved"
-        : ext.toUpperCase() + " — text extracted, clean LaTeX template applied";
-
-      // show warning if any non-tex file is loaded
-      var cvExt = localStorage.getItem("base_cv_ext") || "tex";
-      var clExt = localStorage.getItem("base_cl_ext") || "tex";
-      var warn = document.getElementById("fmt-warning");
-      if (cvExt !== "tex" || clExt !== "tex") {
-        warn.classList.add("show");
-      } else {
-        warn.classList.remove("show");
-      }
-    }
-
-    function getFileForPrompt(type) {
-      var content = localStorage.getItem("base_" + type + "_content");
-      var name = localStorage.getItem("base_" + type + "_name");
-      var ext = localStorage.getItem("base_" + type + "_ext") || "tex";
-      var ftype = localStorage.getItem("base_" + type + "_type") || "text";
-      return { content: content, name: name, ext: ext, ftype: ftype };
-    }
-
-    // ── UI helpers ───────────────────────────────────────────────
-    function setProgress(pct, label) {
-      document.getElementById("progress-fill").style.width = pct + "%";
-      document.getElementById("progress-pct").textContent = pct + "%";
-      if (label) document.getElementById("progress-text").textContent = label;
-    }
-
-    function setStep(id, state) {
-      var el = document.getElementById(id);
-      el.className = "step " + state;
-      var icon = el.querySelector(".step-icon");
-      if (state === "active") icon.innerHTML = '<div class="spinner-inline"></div>';
-      else if (state === "done") icon.textContent = "✓";
-      else if (state === "error") icon.textContent = "✗";
-    }
-
-    function showError(msg) {
-      var el = document.getElementById("error-box");
-      el.textContent = msg;
-      el.classList.add("show");
-    }
-
-    function extractBlock(text, tag) {
-      var re = new RegExp("<" + tag + ">([\\s\\S]*?)<\\/" + tag + ">");
-      var m = text.match(re);
-      if (!m) throw new Error("Model did not return a <" + tag + "> block.\n\nRaw response start:\n" + text.slice(0, 600));
-      return m[1].trim();
-    }
-
-    // ── AI call (multi-provider) ─────────────────────────────────
-    async function callAI(apiKey, model, systemPrompt, userPrompt) {
-      if (currentProvider === "gemini") {
-        return await callGemini(apiKey, model, systemPrompt, userPrompt);
-      } else if (currentProvider === "openai") {
-        return await callOpenAI(apiKey, model, systemPrompt, userPrompt);
-      } else if (currentProvider === "anthropic") {
-        return await callAnthropic(apiKey, model, systemPrompt, userPrompt);
-      }
-      throw new Error("Unknown provider: " + currentProvider);
-    }
-
-    async function callGemini(apiKey, model, sys, user) {
-      var res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: sys }] },
-            contents: [{ parts: [{ text: user }] }],
-            generationConfig: { temperature: 0.2 }
-          })
-        }
-      );
-      if (!res.ok) {
-        var err = await res.json();
-        throw new Error(err.error && err.error.message ? err.error.message : "Gemini HTTP " + res.status);
-      }
-      var data = await res.json();
-      return data.candidates[0].content.parts[0].text;
-    }
-
-    async function callOpenAI(apiKey, model, sys, user) {
-      var res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + apiKey
-        },
-        body: JSON.stringify({
-          model: model,
-          temperature: 0.2,
-          messages: [
-            { role: "system", content: sys },
-            { role: "user", content: user }
-          ]
-        })
-      });
-      if (!res.ok) {
-        var err = await res.json();
-        throw new Error(err.error && err.error.message ? err.error.message : "OpenAI HTTP " + res.status);
-      }
-      var data = await res.json();
-      return data.choices[0].message.content;
-    }
-
-    async function callAnthropic(apiKey, model, sys, user) {
-      var res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({
-          model: model,
-          max_tokens: 8192,
-          system: sys,
-          messages: [{ role: "user", content: user }]
-        })
-      });
-      if (!res.ok) {
-        var err = await res.json();
-        throw new Error(err.error && err.error.message ? err.error.message : "Anthropic HTTP " + res.status);
-      }
-      var data = await res.json();
-      return data.content[0].text;
-    }
-
-    // ── Build prompt with file content ───────────────────────────
-    function buildFileSection(label, fileData) {
-      if (!fileData.content) return "\nNo " + label + " provided.\n";
-
-      var isTex = fileData.ext === "tex";
-
-      if (isTex) {
-        return "\n<" + label + " format=\"tex\">\n" + fileData.content + "\n</" + label + ">\n";
-      } else {
-        // extracted text from PDF/DOC — use content, apply clean template
-        return "\n<" + label + " format=\"extracted_text\" source=\"" + fileData.ext + "\">\n" +
-          "The following is text extracted from a " + fileData.ext.toUpperCase() + " file. " +
-          "Use a clean standard LaTeX article template. " +
-          "Populate it with ONLY the factual content below — do not invent, omit, or change any names, dates, institutions, or results.\n\n" +
-          fileData.content +
-          "\n</" + label + ">\n";
-      }
-    }
-
-    // ── LaTeX compile ────────────────────────────────────────────
-    async function compileTex(texContent, filename) {
-      var res = await fetch("https://latex.ytotech.com/builds/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          compiler: "xelatex",
-          resources: [{ main: true, content: texContent }]
-        })
-      });
-      if (!res.ok) {
-        var data = await res.json();
-        var log = (data.log_files && data.log_files["__main_document__.log"]) ? data.log_files["__main_document__.log"] : "";
-        var errorLine = "";
-        var lines = log.split("\n");
-        for (var i = 0; i < lines.length; i++) {
-          if (lines[i].indexOf("!") === 0) { errorLine = lines[i]; break; }
-        }
-        throw new Error("LaTeX compile failed for " + filename + ":\n" + log.slice(0, 3000));
-      }
-      return await res.blob();
-    }
-
-    // ── Download button ──────────────────────────────────────────
-    function addDownloadButton(filename, blob) {
-      outputFiles[filename] = blob;
-      var size = blob.size > 1024 ? (blob.size / 1024).toFixed(1) + " KB" : blob.size + " B";
-      var btn = document.createElement("button");
-      btn.className = "dl-btn";
-      btn.innerHTML = "<span>&#8595; " + filename + "</span><span class='dl-size'>" + size + "</span>";
-      btn.onclick = function () {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url; a.download = filename; a.click();
-        URL.revokeObjectURL(url);
-      };
-      document.getElementById("dl-list").appendChild(btn);
-    }
-
-    // ── Main generate ────────────────────────────────────────────
-    async function generate() {
-      var apiKey = document.getElementById("api-key").value.trim();
-      var model = document.getElementById("model-select").value;
-      var jd = document.getElementById("jd").value.trim();
-
-      if (!apiKey) { showError("Add your " + PROVIDERS[currentProvider].name + " API key first."); return; }
-      if (!jd) { showError("Paste a job description first."); return; }
-
-      var cvFile = getFileForPrompt("cv");
-      var clFile = getFileForPrompt("cl");
-      if (!cvFile.content) { showError("Upload your base CV file first."); return; }
-
-      // reset UI
-      document.getElementById("error-box").classList.remove("show");
-      document.getElementById("downloads").classList.remove("show");
-      document.getElementById("dl-list").innerHTML = "";
-      document.getElementById("progress-wrap").classList.add("show");
-      document.getElementById("gen-btn").disabled = true;
-      outputFiles = {};
-
-      var stepNums = { "step-meta": "1", "step-gen": "2", "step-cv-pdf": "3", "step-cl-pdf": "4", "step-zip": "5" };
-      Object.keys(stepNums).forEach(function (id) {
-        document.getElementById(id).className = "step";
-        document.getElementById(id).querySelector(".step-icon").textContent = stepNums[id];
-      });
-
-      try {
-        // 1 — extract meta
-        setStep("step-meta", "active");
-        setProgress(5, "Extracting company & job title...");
-
-        var metaText = await callAI(
-          apiKey, model,
-          "You are a precise metadata extractor. Respond only with the requested XML tags, no other text.",
-          "Extract the company name and job title from this job description.\nRespond with ONLY:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
-        );
-        var companyName = extractBlock(metaText, "company");
-        var jobTitle = extractBlock(metaText, "job_title");
-        document.getElementById("detected").textContent = "detected: " + companyName + " — " + jobTitle;
-        setStep("step-meta", "done");
-
-        // 2 — generate
-        setStep("step-gen", "active");
-        setProgress(20, "Tailoring documents with " + PROVIDERS[currentProvider].name + "...");
-
-        var cvSection = buildFileSection("base_cv", cvFile);
-        var clSection = clFile.content
-          ? buildFileSection("base_cover_letter", clFile)
-          : "\n<base_cover_letter>\nNone provided — use a clean professional letter.cls layout.\n</base_cover_letter>\n";
-
-        var genPrompt =
-          "company_name: " + companyName + "\n" +
-          "job_title: " + jobTitle + "\n\n" +
-          "<job_description>\n" + jd + "\n</job_description>\n" +
-          cvSection + clSection +
-          "\nNow produce the three tagged blocks. For <cv> and <cover_letter>: " +
-          "if base files are LaTeX, copy the preamble EXACTLY character for character. " +
-          "If base files are PDF/DOC, faithfully recreate the visual layout in LaTeX. " +
-          "Only edit text content to match the job description.";
-
-        var genText = await callAI(apiKey, model, SYSTEM_PROMPT, genPrompt);
-
-        var cvTex = extractBlock(genText, "cv");
-        var clTex = extractBlock(genText, "cover_letter");
-        var prepMd = extractBlock(genText, "prep_guide");
-
-        var cap = companyName.replace(/\s+/g, "_");
-        var folderKey = companyName.replace(/\s+/g, "_") + "_" + jobTitle.replace(/\s+/g, "_");
-        var cvTexName = "CV_" + cap + ".tex";
-        var clTexName = "Cover_" + cap + ".tex";
-        var cvPdfName = "CV_" + cap + ".pdf";
-        var clPdfName = "Cover_" + cap + ".pdf";
-        var prepName = "Interview_Prep_" + cap + ".md";
-
-        addDownloadButton(cvTexName, new Blob([cvTex], { type: "text/plain" }));
-        addDownloadButton(clTexName, new Blob([clTex], { type: "text/plain" }));
-        addDownloadButton(prepName, new Blob([prepMd], { type: "text/markdown" }));
-        setStep("step-gen", "done");
-
-        // 3 — compile CV
-        setStep("step-cv-pdf", "active");
-        setProgress(55, "Compiling CV to PDF...");
-        addDownloadButton(cvPdfName, await compileTex(cvTex, cvTexName));
-        setStep("step-cv-pdf", "done");
-
-        // 4 — compile cover letter
-        setStep("step-cl-pdf", "active");
-        setProgress(75, "Compiling cover letter to PDF...");
-        addDownloadButton(clPdfName, await compileTex(clTex, clTexName));
-        setStep("step-cl-pdf", "done");
-
-        // 5 — zip
-        setStep("step-zip", "active");
-        setProgress(90, "Packaging files...");
-        var zip = new JSZip();
-        var folder = zip.folder(folderKey);
-        Object.keys(outputFiles).forEach(function (name) { folder.file(name, outputFiles[name]); });
-        var zipBlob = await zip.generateAsync({ type: "blob" });
-        document.getElementById("dl-all-btn").onclick = function () {
-          var url = URL.createObjectURL(zipBlob);
-          var a = document.createElement("a");
-          a.href = url; a.download = folderKey + ".zip"; a.click();
-          URL.revokeObjectURL(url);
+    <script>
+        // ── Provider config ──────────────────────────────────────────
+        var PROVIDERS = {
+            gemini: {
+                name: "Gemini",
+                models: [
+                    { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (best)" },
+                    { id: "gemini-3-flash-preview", label: "Gemini 3.0 Flash (fast)" },
+                    { id: "gemini-flash-lite-latest", label: "Gemini Flash Lite (cheap)" }
+                ],
+                keyPlaceholder: "AIza... — Google AI Studio key"
+            },
+            openai: {
+                name: "OpenAI",
+                models: [
+                    { id: "gpt-5.4-2026-03-05", label: "GPT-5.4 (best)" },
+                    { id: "gpt-5.4-mini-2026-03-17", label: "GPT-5.4 mini (fast)" },
+                    { id: "gpt-5.4-nano-2026-03-17", label: "GPT-5.4 nano (fast)" }
+                ],
+                keyPlaceholder: "sk-... — OpenAI API key"
+            },
+            anthropic: {
+                name: "Anthropic",
+                models: [
+                    { id: "claude-opus-4-6", label: "Claude Opus 4 (best)" },
+                    { id: "claude-sonnet-4-6", label: "Claude Sonnet 4 (balanced)" },
+                    { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4 (fast)" }
+                ],
+                keyPlaceholder: "sk-ant-... — Anthropic API key"
+            }
         };
 
-        setStep("step-zip", "done");
-        setProgress(100, "Done.");
-        document.getElementById("downloads").classList.add("show");
+        var currentProvider = "gemini";
+        var SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
+        var outputFiles = {};
 
-      } catch (e) {
-        showError(e.message);
-        ["step-meta", "step-gen", "step-cv-pdf", "step-cl-pdf", "step-zip"].forEach(function (id) {
-          if (document.getElementById(id).classList.contains("active")) setStep(id, "error");
+        // ── Init ─────────────────────────────────────────────────────
+        window.addEventListener("DOMContentLoaded", function () {
+            var savedProvider = localStorage.getItem("cv_provider") || "gemini";
+            setProvider(savedProvider, true);
+            restoreFile("cv");
+            restoreFile("cl");
+
+            var jdEl = document.getElementById("jd");
+            jdEl.addEventListener("input", function () {
+                var t = jdEl.value.trim();
+                document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
+                document.getElementById("cc").textContent = jdEl.value.length + " chars";
+            });
         });
-      } finally {
-        document.getElementById("gen-btn").disabled = false;
-      }
-    }
-  </script>
+
+        // ── Provider switching ───────────────────────────────────────
+        function setProvider(p, silent) {
+            currentProvider = p;
+            if (!silent) localStorage.setItem("cv_provider", p);
+
+            // update tabs
+            Object.keys(PROVIDERS).forEach(function (key) {
+                document.getElementById("tab-" + key).classList.toggle("active", key === p);
+            });
+
+            // update model dropdown
+            var sel = document.getElementById("model-select");
+            sel.innerHTML = "";
+            PROVIDERS[p].models.forEach(function (m) {
+                var opt = document.createElement("option");
+                opt.value = m.id;
+                opt.textContent = m.label;
+                sel.appendChild(opt);
+            });
+
+            // restore saved model
+            var savedModel = localStorage.getItem("cv_model_" + p);
+            if (savedModel) sel.value = savedModel;
+
+            // restore key
+            var savedKey = localStorage.getItem("cv_key_" + p) || "";
+            document.getElementById("api-key").value = savedKey;
+            document.getElementById("api-key").placeholder = PROVIDERS[p].keyPlaceholder;
+
+            var saveBtn = document.getElementById("save-key-btn");
+            if (savedKey) {
+                saveBtn.textContent = "✓ Saved";
+                saveBtn.classList.add("saved");
+            } else {
+                saveBtn.textContent = "Save";
+                saveBtn.classList.remove("saved");
+            }
+
+            document.getElementById("footer-provider").textContent = PROVIDERS[p].name.toLowerCase() + " · latexonline.cc";
+        }
+
+        function saveModelChoice() {
+            var model = document.getElementById("model-select").value;
+            localStorage.setItem("cv_model_" + currentProvider, model);
+        }
+
+        function saveKey() {
+            var key = document.getElementById("api-key").value.trim();
+            if (!key) return;
+            localStorage.setItem("cv_key_" + currentProvider, key);
+            var btn = document.getElementById("save-key-btn");
+            btn.textContent = "✓ Saved";
+            btn.classList.add("saved");
+        }
+
+        // ── File handling ────────────────────────────────────────────
+        function loadFile(type) {
+            var inputId = type + "-input";
+            var file = document.getElementById(inputId).files[0];
+            if (!file) return;
+            var ext = file.name.split(".").pop().toLowerCase();
+            if (ext !== "tex") { showError("Only .tex files are accepted."); return; }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                localStorage.setItem("base_" + type + "_content", e.target.result);
+                localStorage.setItem("base_" + type + "_name", file.name);
+                localStorage.setItem("base_" + type + "_ext", "tex");
+                localStorage.setItem("base_" + type + "_type", "text");
+                updateFileCard(type, file.name, "tex");
+            };
+            reader.readAsText(file);
+        }
+
+        function restoreFile(type) {
+            var name = localStorage.getItem("base_" + type + "_name");
+            var ext = localStorage.getItem("base_" + type + "_ext");
+            if (name) updateFileCard(type, name, ext);
+        }
+
+        function clearFile(e, type) {
+            e.preventDefault();
+            e.stopPropagation();
+            ["_content", "_name", "_ext", "_type"].forEach(function (k) {
+                localStorage.removeItem("base_" + type + k);
+            });
+            document.getElementById(type + "-card").classList.remove("loaded");
+            document.getElementById(type + "-icon").textContent = type === "cv" ? "📄" : "✉";
+            document.getElementById(type + "-title").textContent = type === "cv" ? "Upload Base CV" : "Upload Base Cover Letter";
+            document.getElementById(type + "-sub").textContent = type === "cv" ? "Your master resume file" : "Your master cover letter";
+            document.getElementById(type + "-input").value = "";
+        }
+
+        function updateFileCard(type, name, ext) {
+            var icons = { tex: "📝", pdf: "📕", doc: "📘", docx: "📘" };
+            document.getElementById(type + "-card").classList.add("loaded");
+            document.getElementById(type + "-icon").textContent = icons[ext] || "📄";
+            document.getElementById(type + "-title").textContent = "✓ " + name;
+            document.getElementById(type + "-sub").textContent = ext === "tex"
+                ? "LaTeX — full formatting preserved"
+                : ext.toUpperCase() + " — text extracted, clean LaTeX template applied";
+
+            // show warning if any non-tex file is loaded
+            var cvExt = localStorage.getItem("base_cv_ext") || "tex";
+            var clExt = localStorage.getItem("base_cl_ext") || "tex";
+            var warn = document.getElementById("fmt-warning");
+            if (cvExt !== "tex" || clExt !== "tex") {
+                warn.classList.add("show");
+            } else {
+                warn.classList.remove("show");
+            }
+        }
+
+        function getFileForPrompt(type) {
+            var content = localStorage.getItem("base_" + type + "_content");
+            var name = localStorage.getItem("base_" + type + "_name");
+            var ext = localStorage.getItem("base_" + type + "_ext") || "tex";
+            var ftype = localStorage.getItem("base_" + type + "_type") || "text";
+            return { content: content, name: name, ext: ext, ftype: ftype };
+        }
+
+        // ── UI helpers ───────────────────────────────────────────────
+        function setProgress(pct, label) {
+            document.getElementById("progress-fill").style.width = pct + "%";
+            document.getElementById("progress-pct").textContent = pct + "%";
+            if (label) document.getElementById("progress-text").textContent = label;
+        }
+
+        function setStep(id, state) {
+            var el = document.getElementById(id);
+            el.className = "step " + state;
+            var icon = el.querySelector(".step-icon");
+            if (state === "active") icon.innerHTML = '<div class="spinner-inline"></div>';
+            else if (state === "done") icon.textContent = "✓";
+            else if (state === "error") icon.textContent = "✗";
+        }
+
+        function showError(msg) {
+            var el = document.getElementById("error-box");
+            el.textContent = msg;
+            el.classList.add("show");
+        }
+
+        function extractBlock(text, tag) {
+            var re = new RegExp("<" + tag + ">([\\s\\S]*?)<\\/" + tag + ">");
+            var m = text.match(re);
+            if (!m) throw new Error("Model did not return a <" + tag + "> block.\n\nRaw response start:\n" + text.slice(0, 600));
+            return m[1].trim();
+        }
+
+        // ── AI call (multi-provider) ─────────────────────────────────
+        async function callAI(apiKey, model, systemPrompt, userPrompt) {
+            if (currentProvider === "gemini") {
+                return await callGemini(apiKey, model, systemPrompt, userPrompt);
+            } else if (currentProvider === "openai") {
+                return await callOpenAI(apiKey, model, systemPrompt, userPrompt);
+            } else if (currentProvider === "anthropic") {
+                return await callAnthropic(apiKey, model, systemPrompt, userPrompt);
+            }
+            throw new Error("Unknown provider: " + currentProvider);
+        }
+
+        async function callGemini(apiKey, model, sys, user) {
+            var res = await fetch(
+                "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: sys }] },
+                        contents: [{ parts: [{ text: user }] }],
+                        generationConfig: { temperature: 0.2 }
+                    })
+                }
+            );
+            if (!res.ok) {
+                var err = await res.json();
+                throw new Error(err.error && err.error.message ? err.error.message : "Gemini HTTP " + res.status);
+            }
+            var data = await res.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        async function callOpenAI(apiKey, model, sys, user) {
+            var res = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + apiKey
+                },
+                body: JSON.stringify({
+                    model: model,
+                    temperature: 0.2,
+                    messages: [
+                        { role: "system", content: sys },
+                        { role: "user", content: user }
+                    ]
+                })
+            });
+            if (!res.ok) {
+                var err = await res.json();
+                throw new Error(err.error && err.error.message ? err.error.message : "OpenAI HTTP " + res.status);
+            }
+            var data = await res.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callAnthropic(apiKey, model, sys, user) {
+            var res = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": apiKey,
+                    "anthropic-version": "2023-06-01",
+                    "anthropic-dangerous-direct-browser-access": "true"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    max_tokens: 8192,
+                    system: sys,
+                    messages: [{ role: "user", content: user }]
+                })
+            });
+            if (!res.ok) {
+                var err = await res.json();
+                throw new Error(err.error && err.error.message ? err.error.message : "Anthropic HTTP " + res.status);
+            }
+            var data = await res.json();
+            return data.content[0].text;
+        }
+
+        // ── Build prompt with file content ───────────────────────────
+        function buildFileSection(label, fileData) {
+            if (!fileData.content) return "\nNo " + label + " provided.\n";
+
+            var isTex = fileData.ext === "tex";
+
+            if (isTex) {
+                return "\n<" + label + " format=\"tex\">\n" + fileData.content + "\n</" + label + ">\n";
+            } else {
+                // extracted text from PDF/DOC — use content, apply clean template
+                return "\n<" + label + " format=\"extracted_text\" source=\"" + fileData.ext + "\">\n" +
+                    "The following is text extracted from a " + fileData.ext.toUpperCase() + " file. " +
+                    "Use a clean standard LaTeX article template. " +
+                    "Populate it with ONLY the factual content below — do not invent, omit, or change any names, dates, institutions, or results.\n\n" +
+                    fileData.content +
+                    "\n</" + label + ">\n";
+            }
+        }
+
+        // ── LaTeX compile ────────────────────────────────────────────
+        async function compileTex(texContent, filename) {
+            var res = await fetch("https://latex.ytotech.com/builds/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    compiler: "xelatex",
+                    resources: [{ main: true, content: texContent }]
+                })
+            });
+            if (!res.ok) {
+                var data = await res.json();
+                var log = (data.log_files && data.log_files["__main_document__.log"]) ? data.log_files["__main_document__.log"] : "";
+                var errorLine = "";
+                var lines = log.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i].indexOf("!") === 0) { errorLine = lines[i]; break; }
+                }
+                throw new Error("LaTeX compile failed for " + filename + ":\n" + log.slice(0, 3000));
+            }
+            return await res.blob();
+        }
+
+        // ── Download button ──────────────────────────────────────────
+        function addDownloadButton(filename, blob) {
+            outputFiles[filename] = blob;
+            var size = blob.size > 1024 ? (blob.size / 1024).toFixed(1) + " KB" : blob.size + " B";
+            var btn = document.createElement("button");
+            btn.className = "dl-btn";
+            btn.innerHTML = "<span>&#8595; " + filename + "</span><span class='dl-size'>" + size + "</span>";
+            btn.onclick = function () {
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+            };
+            document.getElementById("dl-list").appendChild(btn);
+        }
+
+        // ── Main generate ────────────────────────────────────────────
+        async function generate() {
+            var apiKey = document.getElementById("api-key").value.trim();
+            var model = document.getElementById("model-select").value;
+            var jd = document.getElementById("jd").value.trim();
+
+            if (!apiKey) { showError("Add your " + PROVIDERS[currentProvider].name + " API key first."); return; }
+            if (!jd) { showError("Paste a job description first."); return; }
+
+            var cvFile = getFileForPrompt("cv");
+            var clFile = getFileForPrompt("cl");
+            if (!cvFile.content) { showError("Upload your base CV file first."); return; }
+
+            // reset UI
+            document.getElementById("error-box").classList.remove("show");
+            document.getElementById("downloads").classList.remove("show");
+            document.getElementById("score-card").classList.remove("show");
+            document.getElementById("ats-details").style.display = "none";
+            document.getElementById("dl-list").innerHTML = "";
+            document.getElementById("progress-wrap").classList.add("show");
+            document.getElementById("gen-btn").disabled = true;
+            outputFiles = {};
+
+            var stepNums = { "step-meta": "1", "step-gen": "2", "step-cv-pdf": "3", "step-cl-pdf": "4", "step-zip": "5" };
+            Object.keys(stepNums).forEach(function (id) {
+                document.getElementById(id).className = "step";
+                document.getElementById(id).querySelector(".step-icon").textContent = stepNums[id];
+            });
+
+            try {
+                // 1 — extract meta
+                setStep("step-meta", "active");
+                setProgress(5, "Extracting company & job title...");
+
+                var metaText = await callAI(
+                    apiKey, model,
+                    "You are a precise metadata extractor. Respond only with the requested XML tags, no other text.",
+                    "Extract the company name and job title from this job description.\nRespond with ONLY:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
+                );
+                var companyName = extractBlock(metaText, "company");
+                var jobTitle = extractBlock(metaText, "job_title");
+                document.getElementById("detected").textContent = "detected: " + companyName + " — " + jobTitle;
+                setStep("step-meta", "done");
+
+                // 2 — generate
+                setStep("step-gen", "active");
+                setProgress(20, "Tailoring documents with " + PROVIDERS[currentProvider].name + "...");
+
+                var cvSection = buildFileSection("base_cv", cvFile);
+                var clSection = clFile.content
+                    ? buildFileSection("base_cover_letter", clFile)
+                    : "\n<base_cover_letter>\nNone provided — use a clean professional letter.cls layout.\n</base_cover_letter>\n";
+
+                var genPrompt =
+                    "company_name: " + companyName + "\n" +
+                    "job_title: " + jobTitle + "\n\n" +
+                    "<job_description>\n" + jd + "\n</job_description>\n" +
+                    cvSection + clSection +
+                    "\nNow produce the three tagged blocks. For <cv> and <cover_letter>: " +
+                    "if base files are LaTeX, copy the preamble EXACTLY character for character. " +
+                    "If base files are PDF/DOC, faithfully recreate the visual layout in LaTeX. " +
+                    "Only edit text content to match the job description.";
+
+                var genText = await callAI(apiKey, model, SYSTEM_PROMPT, genPrompt);
+
+                var cvTex = extractBlock(genText, "cv");
+                var clTex = extractBlock(genText, "cover_letter");
+                var prepMd = extractBlock(genText, "prep_guide");
+
+                var atsAnalysisBlock = extractBlock(genText, "ats_analysis");
+                var scoreMatch = atsAnalysisBlock.match(/SCORE:\s*(\d+)/i);
+                var matchingMatch = atsAnalysisBlock.match(/MATCHING:\s*(.+)/i);
+                var missingMatch = atsAnalysisBlock.match(/MISSING:\s*(.+)/i);
+                var analysisMatch = atsAnalysisBlock.match(/ANALYSIS:\s*([\s\S]+)/i);
+
+                var atsScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+                var atsMatching = matchingMatch ? matchingMatch[1].trim() : "";
+                var atsMissing = missingMatch ? missingMatch[1].trim() : "";
+                var atsAnalysis = analysisMatch ? analysisMatch[1].trim() : "";
+
+                var cap = companyName.replace(/\s+/g, "_");
+                var folderKey = companyName.replace(/\s+/g, "_") + "_" + jobTitle.replace(/\s+/g, "_");
+                var cvTexName = "CV_" + cap + ".tex";
+                var clTexName = "Cover_" + cap + ".tex";
+                var cvPdfName = "CV_" + cap + ".pdf";
+                var clPdfName = "Cover_" + cap + ".pdf";
+                var prepName = "Interview_Prep_" + cap + ".md";
+
+                addDownloadButton(cvTexName, new Blob([cvTex], { type: "text/plain" }));
+                addDownloadButton(clTexName, new Blob([clTex], { type: "text/plain" }));
+                addDownloadButton(prepName, new Blob([prepMd], { type: "text/markdown" }));
+                setStep("step-gen", "done");
+
+                // 3 — compile CV
+                setStep("step-cv-pdf", "active");
+                setProgress(55, "Compiling CV to PDF...");
+                addDownloadButton(cvPdfName, await compileTex(cvTex, cvTexName));
+                setStep("step-cv-pdf", "done");
+
+                // 4 — compile cover letter
+                setStep("step-cl-pdf", "active");
+                setProgress(75, "Compiling cover letter to PDF...");
+                addDownloadButton(clPdfName, await compileTex(clTex, clTexName));
+                setStep("step-cl-pdf", "done");
+
+                // 5 — zip
+                setStep("step-zip", "active");
+                setProgress(90, "Packaging files...");
+                var zip = new JSZip();
+                var folder = zip.folder(folderKey);
+                Object.keys(outputFiles).forEach(function (name) { folder.file(name, outputFiles[name]); });
+                var zipBlob = await zip.generateAsync({ type: "blob" });
+                document.getElementById("dl-all-btn").onclick = function () {
+                    var url = URL.createObjectURL(zipBlob);
+                    var a = document.createElement("a");
+                    a.href = url; a.download = folderKey + ".zip"; a.click();
+                    URL.revokeObjectURL(url);
+                };
+
+                setStep("step-zip", "done");
+                setProgress(100, "Done.");
+                document.getElementById("score-card").classList.add("show");
+
+                // Animate score
+                var scoreValueEl = document.getElementById("score-value");
+                var scoreFillEl = document.getElementById("score-fill");
+                scoreValueEl.textContent = atsScore + "%";
+                setTimeout(function () {
+                    scoreFillEl.style.width = atsScore + "%";
+                }, 100);
+
+                // Set color based on score
+                if (atsScore >= 80) {
+                    scoreValueEl.style.color = "var(--green)";
+                    scoreFillEl.style.background = "var(--green)";
+                    scoreFillEl.style.boxShadow = "0 0 10px rgba(63, 185, 80, 0.4)";
+                } else if (atsScore >= 60) {
+                    scoreValueEl.style.color = "var(--orange)";
+                    scoreFillEl.style.background = "var(--orange)";
+                    scoreFillEl.style.boxShadow = "0 0 10px rgba(255, 165, 2, 0.4)";
+                } else {
+                    scoreValueEl.style.color = "var(--red)";
+                    scoreFillEl.style.background = "var(--red)";
+                    scoreFillEl.style.boxShadow = "0 0 10px rgba(255, 71, 87, 0.4)";
+                }
+
+                // Render keywords
+                var renderBadges = function (kwsStr, isMissing) {
+                    if (!kwsStr || kwsStr.toLowerCase() === "none") return "<em>None</em>";
+                    var kws = kwsStr.split(',').filter(function (k) { return k.trim() !== ""; });
+                    if (kws.length === 0) return "<em>None</em>";
+                    return kws.map(function (k) {
+                        return '<span class="kw-badge' + (isMissing ? ' missing' : '') + '">' + k.trim() + '</span>';
+                    }).join('');
+                };
+
+                document.getElementById("ats-matching").innerHTML = renderBadges(atsMatching, false);
+                document.getElementById("ats-missing").innerHTML = renderBadges(atsMissing, true);
+                document.getElementById("ats-analysis-text").textContent = atsAnalysis;
+                document.getElementById("ats-details").style.display = "block";
+
+                document.getElementById("downloads").classList.add("show");
+
+            } catch (e) {
+                showError(e.message);
+                ["step-meta", "step-gen", "step-cv-pdf", "step-cl-pdf", "step-zip"].forEach(function (id) {
+                    if (document.getElementById(id).classList.contains("active")) setStep(id, "error");
+                });
+            } finally {
+                document.getElementById("gen-btn").disabled = false;
+            }
+        }
+    </script>
 </body>
 
 </html>
