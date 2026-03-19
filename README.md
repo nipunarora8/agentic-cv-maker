@@ -25,7 +25,9 @@ YourDownloads/
     ├── CV_YourName_Company.pdf
     ├── Cover_YourName_Company.tex
     ├── Cover_YourName_Company.pdf
-    └── Interview_Prep_Company.md
+    ├── Interview_Prep_Company.md
+    ├── JD_Profile_Company.json
+    └── Recruiter_Read_Company.md
 ```
 
 ---
@@ -36,9 +38,13 @@ The agent is designed around **honest positioning** — it edits your real exper
 
 - Rewrites your professional summary to address the company's core problem
 - Reorders and reframes bullet points using the JD's vocabulary, only where the mapping is true
-- Reorders the most relevant projects to the top
-- Flags any stretch claims in the prep guide so you know what to prepare for
-- Generates a full interview prep guide: vibe check, your best talking points, honest gap analysis, and mock questions
+- Calculates a **transparent, deterministic ATS Match Score** fully in-browser (Original vs. Tailored comparison)
+- Displays a native **„Recruiter Read“** Markdown review of your application
+- Drafts an **"Outreach Pack"** containing a personalized Cold Email and LinkedIn connection note
+- Provides a **Live PDF Preview** directly in the UI before you even download
+- Supports **Multi-Language** processing seamlessly (e.g., German/English capabilities)
+- Includes a **Tailoring Intensity** toggle (Light, Balanced, or Aggressive)
+- Generates a full interview prep guide: vibe check, your best talking points, gap analysis, and mock questions
 
 ---
 
