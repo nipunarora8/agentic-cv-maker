@@ -10,11 +10,11 @@
 
 ## How it works
 
-Everything runs in the browser — no backend, no server, no data sent anywhere except directly to Google's Gemini API with your own key.
+Everything runs in the browser — no backend, no server, no data sent anywhere except directly to your chosen AI provider with your own key.
 
 1. Upload your `base_cv.tex` and `base_cover_letter.tex` (saved to localStorage — persists across sessions)
 2. Paste a job description — company name and job title are extracted automatically
-3. Gemini tailors your CV and cover letter by editing your existing LaTeX files, not generating new ones
+3. Your chosen AI tailors your CV and cover letter by editing your existing LaTeX files, not generating new ones
 4. PDFs are compiled via [latex.ytotech.com](https://latex.ytotech.com)
 5. Everything is packaged into a ZIP and downloaded directly to your machine
 
@@ -32,19 +32,43 @@ YourDownloads/
 
 ---
 
-## What Gemini actually does
+## Tools
 
-The agent is designed around **honest positioning** — it edits your real experience to match the JD, it does not fabricate.
+### `index.html` — CV Maker
+The main tool. Tailors, compiles, and packages your full application.
+
+### `ats_analyzer.html` — ATS Analyzer
+A standalone pre-check tool. Upload your CV, paste a JD, and get an ATS match score, keyword gap analysis, a candid recruiter review, and specific tips to boost your profile — without generating a new document. Accessible directly from the CV Maker via the **ATS Analyzer ↗** button.
+
+---
+
+## What the AI actually does
+
+The agent is built around **honest positioning** — it edits your real experience to match the JD, it does not fabricate.
 
 - Rewrites your professional summary to address the company's core problem
 - Reorders and reframes bullet points using the JD's vocabulary, only where the mapping is true
-- Calculates a **transparent, deterministic ATS Match Score** fully in-browser (Original vs. Tailored comparison)
-- Displays a native **„Recruiter Read“** Markdown review of your application
-- Drafts an **"Outreach Pack"** containing a personalized Cold Email and LinkedIn connection note
-- Provides a **Live PDF Preview** directly in the UI before you even download
-- Supports **Multi-Language** processing seamlessly (e.g., German/English capabilities)
-- Includes a **Tailoring Intensity** toggle (Light, Balanced, or Aggressive)
-- Generates a full interview prep guide: vibe check, your best talking points, gap analysis, and mock questions
+- Computes a **transparent, deterministic ATS Match Score** fully in-browser (Original vs. Tailored)
+- Displays a **Recruiter Read** — a candid first-pass review of your application
+- Drafts an **Outreach Pack** — a personalized cold email and LinkedIn connection note
+- Provides a **Live PDF Preview** directly in the UI before you download
+- Supports **multi-language** processing (e.g. German / English JDs)
+- **Tailoring Intensity** toggle: Light, Balanced, or Aggressive
+- Generates a full **Interview Prep Guide**: vibe check, your strongest angles, honest gap analysis, and mock questions
+
+---
+
+## ATS Score Methodology
+
+Computed entirely in-browser — not a black-box vendor score.
+
+| Dimension | Max | What it checks |
+|---|---|---|
+| Hard Requirements | 30 | Must-have JD keywords found in the CV |
+| Skills Coverage | 25 | Core keywords, tools, preferred requirements |
+| Evidence Strength | 20 | Quantified results, action verbs, outcome language |
+| Role Alignment | 15 | Job title, role family, domain, evidence priorities |
+| Format Compatibility | 10 | Detectable sections, dates, contact info |
 
 ---
 
@@ -52,73 +76,37 @@ The agent is designed around **honest positioning** — it edits your real exper
 
 | | |
 |---|---|
-| AI | Google Gemini (via REST API) |
+| AI | Gemini, OpenAI, or Anthropic (your key, your choice) |
 | LaTeX compilation | [latex.ytotech.com](https://latex.ytotech.com) (free) |
 | Frontend | Plain HTML — GitHub Pages |
 | Storage | Browser localStorage only |
 
 ---
 
-## Setup
-
-### 1. Fork this repo
-
-Click **Fork** at the top right. Keep it public to use GitHub Pages for free.
-
-### 2. Enable GitHub Pages
-
-Repo → **Settings → Pages** → Source: `Deploy from a branch` → Branch: `main`, folder: `/docs`
-
-Your app will be live at:
-```
-https://your_github_username.github.io/agentic-cv-maker
-```
-
-### 3. Get a Gemini API key
-
-Go to [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) and create a free key. It starts with `AIza...`
-
-### 4. Open the app and configure
-
-1. Paste your Gemini API key → click **Save key**
-2. Upload your `base_cv.tex` → click the CV slot
-3. Upload your `base_cover_letter.tex` → click the cover letter slot
-
-Both files are saved to your browser's localStorage. You only need to do this once.
-
-### 5. Use it
-
-1. Paste a job description into the textarea
-2. Click **⚡ Generate**
-3. Wait ~60–90 seconds
-4. Download individual files or click **Download all as ZIP**
-
----
-
 ## Your base LaTeX files
 
-The tool works best with a standard LaTeX CV using `article` class and `pdflatex`-compatible packages. The repo includes `base_cv.tex` and `base_cover_letter.tex` as examples — replace these with your own.
+The tool works best with a standard LaTeX CV using the `article` class and `pdflatex`-compatible packages. The repo includes `base_cv.tex` and `base_cover_letter.tex` as examples — replace these with your own.
 
-The agent is instructed to copy your preamble exactly and only edit text content. If you use a heavily custom LaTeX setup, it will still work — just verify the first output and adjust the system prompt in `docs/index.html` if needed.
+The agent copies your preamble exactly and only edits text content. If you use a custom LaTeX setup, verify the first output and adjust the system prompt in `docs/index.html` if needed.
 
 ---
 
 ## Customizing the agent
 
-The system prompt lives inside a `<script type="text/plain" id="system-prompt">` tag in `docs/index.html`. Open it and edit directly — no escaping needed, paste plain text.
+The system prompt lives inside a `<script type="text/plain" id="system-prompt">` tag in `docs/index.html`. Open it and edit directly — no escaping needed, plain text.
 
 Key things to personalize:
 - Your name (used in output filenames)
-- Your background and degree
+- Your background and target roles
 - How aggressively to reframe experience vs. flag gaps in the prep guide
 
 ---
 
 ## Privacy
 
-- Your Gemini API key is stored in `localStorage` — it never appears in the source code or git history
-- Your base CV and cover letter are stored in `localStorage` — they never leave your browser except when sent to Gemini as part of the generation prompt
-- No analytics, no tracking, no third-party services except Gemini API and latex.ytotech.com
+- API keys are stored in `localStorage` — never in source code or git history
+- Your CV and cover letter are stored in `localStorage` — they never leave your browser except when sent to your chosen AI provider as part of the generation prompt
+- No analytics, no tracking, no third-party services except your AI provider and latex.ytotech.com
 
 ---
 
@@ -126,10 +114,10 @@ Key things to personalize:
 
 ```
 ├── docs/
-│   └── index.html           # The entire app — GitHub Pages frontend
+│   ├── index.html           # CV Maker — main app
+│   └── ats_analyzer.html    # ATS & Recruiter Analyzer
 ├── base_cv.tex              # Example base CV (replace with yours)
 ├── base_cover_letter.tex    # Example base cover letter (replace with yours)
-├── requirements.txt
 └── README.md
 ```
 

@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATS Analyser — Nipun Arora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #06070a;
+            --s1: #0d0f14;
+            --s2: #111318;
+            --s3: #161820;
+            --b1: #1c1f28;
+            --b2: #272b38;
+            --text: #e4e6ef;
+            --muted: #525870;
+            --dim: #343848;
+            --accent: #7b6ef6;
+            --accent2: #a78bfa;
+            --accent-glow: rgba(123, 110, 246, 0.18);
+            --accent-dim: rgba(123, 110, 246, 0.08);
+            --green: #34d399;
+            --green-dim: rgba(52, 211, 153, 0.08);
+            --red: #f87171;
+            --red-dim: rgba(248, 113, 113, 0.08);
+            --orange: #fb923c;
+            --orange-dim: rgba(251, 146, 60, 0.08);
+            --yellow: #fbbf24;
+            --blue: #60a5fa;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(123, 110, 246, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(123, 110, 246, 0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Top glow */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(123, 110, 246, 0.06) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 6rem;
+        }
+
+        /* HEADER */
+        header {
+            margin-bottom: 3rem;
+        }
+
+        .eyebrow {
+            font-size: 0.6rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--accent2);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--accent2);
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.025em;
+        }
+
+        h1 em {
+            color: var(--accent2);
+            font-style: normal;
+        }
+
+        .subtitle {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+            line-height: 1.8;
+            max-width: 520px;
+        }
+
+        /* LAYOUT */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @media(max-width:640px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* PROVIDER BAR */
+        .provider-row {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--b1);
+            background: var(--s1);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .provider-tab {
+            flex: 1;
+            padding: 0.65rem 0.5rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            border-right: 1px solid var(--b1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .provider-tab:last-child {
+            border-right: none;
+        }
+
+        .provider-tab:hover {
+            background: var(--s2);
+            color: var(--text);
+        }
+
+        .provider-tab.active {
+            background: var(--accent-dim);
+            color: var(--accent2);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        /* MODEL + KEY ROW */
+        .model-key-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        select {
+            background: var(--s1);
+            border: 1px solid var(--b1);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.6rem 2rem 0.6rem 0.8rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23525870'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            flex: 1;
+            min-width: 0;
+        }
+
+        select:focus {
+            border-color: var(--accent);
+        }
+
+        select option {
+            background: var(--s2);
+        }
+
+        .key-wrap {
+            display: flex;
+            flex: 1.6;
+            gap: 0;
+            min-width: 0;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            flex: 1;
+            background: var(--s1);
+            border: 1px solid var(--b1);
+            border-right: none;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            padding: 0.6rem 0.8rem;
+            outline: none;
+            transition: border-color 0.2s;
+            min-width: 0;
+        }
+
+        input::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .save-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            padding: 0.6rem 0.85rem;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .save-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .save-btn.saved {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        /* FILE CARDS */
+        .file-card {
+            background: var(--s1);
+            border: 1px dashed var(--b2);
+            padding: 0.85rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-card:hover {
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        .file-card.loaded {
+            border-color: var(--green);
+            border-style: solid;
+            background: var(--green-dim);
+        }
+
+        .file-card.loaded .fc-icon {
+            color: var(--green);
+        }
+
+        .file-card input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .fc-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            color: var(--b2);
+            transition: color 0.2s;
+        }
+
+        .fc-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fc-title {
+            font-size: 0.7rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fc-sub {
+            font-size: 0.6rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .fc-clear {
+            flex-shrink: 0;
+            font-size: 0.62rem;
+            padding: 0.2em 0.4em;
+            background: transparent;
+            border: 1px solid var(--b1);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            z-index: 1;
+            position: relative;
+        }
+
+        .fc-clear:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* JD CARD */
+        .card {
+            background: var(--s1);
+            border: 1px solid var(--b1);
+            margin-bottom: 0.75rem;
+        }
+
+        .card-header {
+            padding: 0.75rem 1.2rem;
+            border-bottom: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--muted);
+        }
+
+        .card-header .dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .card-header .dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--b2);
+        }
+
+        .card-header .fname {
+            color: var(--accent2);
+            font-style: italic;
+        }
+
+        .card-body {
+            padding: 1.2rem;
+        }
+
+        label.field-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.45rem;
+        }
+
+        label.field-label .tag {
+            background: var(--accent-dim);
+            color: var(--accent2);
+            border: 1px solid rgba(123, 110, 246, 0.2);
+            padding: 0.1em 0.4em;
+            font-size: 0.58rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--b1);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.73rem;
+            line-height: 1.75;
+            padding: 0.85rem;
+            resize: vertical;
+            min-height: 200px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.62rem;
+            color: var(--muted);
+            margin-top: 0.3rem;
+        }
+
+        /* RUN BUTTON */
+        .run-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button.primary {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+            padding: 0.75rem 1.6rem;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.18s;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        button.primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        button.primary:hover:not(:disabled)::after {
+            opacity: 0.12;
+        }
+
+        button.primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button.primary:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .btn-hint {
+            font-size: 0.63rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        /* PROGRESS */
+        .progress-wrap {
+            margin-top: 1.2rem;
+            display: none;
+        }
+
+        .progress-wrap.show {
+            display: block;
+        }
+
+        .progress-label {
+            font-size: 0.63rem;
+            color: var(--muted);
+            margin-bottom: 0.3rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-label span {
+            color: var(--accent2);
+        }
+
+        .progress-track {
+            height: 1px;
+            background: var(--b1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .steps {
+            margin-top: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.68rem;
+            color: var(--muted);
+            transition: color 0.3s;
+        }
+
+        .step.active {
+            color: var(--text);
+        }
+
+        .step.done {
+            color: var(--green);
+        }
+
+        .step.error {
+            color: var(--red);
+        }
+
+        .step-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid var(--b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.52rem;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-icon {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .step.done .step-icon {
+            border-color: var(--green);
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .step.error .step-icon {
+            border-color: var(--red);
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .spinner-inline {
+            width: 6px;
+            height: 6px;
+            border: 1.5px solid var(--b2);
+            border-top-color: var(--accent2);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* ERROR */
+        .error-box {
+            margin-top: 1rem;
+            padding: 0.8rem 1rem;
+            background: var(--red-dim);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            color: var(--red);
+            font-size: 0.72rem;
+            display: none;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        /* ── RESULTS ── */
+        .results-section {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        /* Score header */
+        .score-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @media(max-width:600px) {
+            .score-header {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .score-panel {
+            background: var(--s1);
+            border: 1px solid var(--b1);
+            padding: 1.4rem;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .score-panel.tailored {
+            border-color: rgba(123, 110, 246, 0.3);
+            background: var(--accent-dim);
+        }
+
+        .score-panel-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .score-panel.tailored .score-panel-label {
+            color: var(--accent2);
+        }
+
+        .score-number {
+            font-family: 'Syne', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.7rem;
+        }
+
+        .score-bar {
+            height: 3px;
+            background: var(--b1);
+            overflow: hidden;
+            border-radius: 2px;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto 1.2rem;
+        }
+
+        .score-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Breakdown grid */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.4rem;
+            margin-top: 0.8rem;
+        }
+
+        @media(max-width:700px) {
+            .breakdown-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .breakdown-cell {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            padding: 0.5rem 0.4rem;
+            text-align: center;
+        }
+
+        .breakdown-k {
+            font-size: 0.55rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.25rem;
+            line-height: 1.3;
+        }
+
+        .breakdown-v {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Keywords */
+        .kw-section {
+            margin-top: 0.75rem;
+        }
+
+        .kw-header {
+            font-size: 0.58rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .kw-header::before {
+            content: '';
+            width: 8px;
+            height: 1px;
+            background: currentColor;
+        }
+
+        .kw-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .kw-tag {
+            padding: 0.2em 0.55em;
+            font-size: 0.62rem;
+            font-family: 'DM Mono', monospace;
+            border: 1px solid;
+        }
+
+        .kw-tag.match {
+            background: var(--green-dim);
+            border-color: rgba(52, 211, 153, 0.3);
+            color: var(--green);
+        }
+
+        .kw-tag.miss {
+            background: var(--red-dim);
+            border-color: rgba(248, 113, 113, 0.3);
+            color: var(--red);
+        }
+
+        .kw-tag.stretch {
+            background: var(--orange-dim);
+            border-color: rgba(251, 146, 60, 0.3);
+            color: var(--orange);
+        }
+
+        /* Content panels */
+        .panel {
+            background: var(--s1);
+            border: 1px solid var(--b1);
+            margin-bottom: 0.75rem;
+        }
+
+        .panel-header {
+            padding: 0.75rem 1.2rem;
+            border-bottom: 1px solid var(--b1);
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-header .ph-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .panel-body {
+            padding: 1.2rem;
+        }
+
+        /* Markdown render */
+        .md-content {
+            font-size: 0.76rem;
+            line-height: 1.8;
+            color: var(--text);
+        }
+
+        .md-content h1,
+        .md-content h2,
+        .md-content h3 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            color: var(--accent2);
+            margin: 1.2rem 0 0.5rem;
+        }
+
+        .md-content h3 {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .md-content h2 {
+            font-size: 1rem;
+            border-bottom: 1px solid var(--b1);
+            padding-bottom: 0.4rem;
+        }
+
+        .md-content h1 {
+            font-size: 1.2rem;
+        }
+
+        .md-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .md-content ul,
+        .md-content ol {
+            padding-left: 1.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .md-content li {
+            margin-bottom: 0.35rem;
+        }
+
+        .md-content strong {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .md-content em {
+            color: var(--muted);
+        }
+
+        .md-content code {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            padding: 0.1em 0.4em;
+            color: var(--accent2);
+        }
+
+        .md-content blockquote {
+            border-left: 2px solid var(--accent);
+            padding-left: 0.9rem;
+            color: var(--muted);
+            margin: 0.8rem 0;
+            font-style: italic;
+        }
+
+        /* Tips grid */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+
+        @media(max-width:640px) {
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tip-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            padding: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .tip-card:hover {
+            border-color: var(--accent);
+        }
+
+        .tip-priority {
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.15em 0.5em;
+            border: 1px solid;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .tip-priority.high {
+            color: var(--red);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .tip-priority.medium {
+            color: var(--orange);
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
+        .tip-priority.low {
+            color: var(--green);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .tip-title {
+            font-size: 0.72rem;
+            color: var(--text);
+            font-weight: 500;
+            margin-bottom: 0.35rem;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .tip-body {
+            font-size: 0.65rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Score note */
+        .score-note {
+            margin-top: 0.75rem;
+            padding: 0.7rem 1rem;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            font-size: 0.63rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <script type="text/plain" id="system-prompt">
+# Role: Recruiter-Side Application Reviewer
+
+You are a senior technical recruiter and hiring manager with 15+ years placing AI, ML, and Software Engineering talent at top European tech firms. You have reviewed thousands of applications and know exactly what makes hiring managers stop scrolling — and what gets an application binned in 10 seconds.
+
+You are reviewing an application (CV + job description) and must deliver a brutally honest, recruiter-perspective analysis. Your job is not to be nice — your job is to give the candidate the real picture so they can win.
+
+## Output Format
+
+Respond with EXACTLY these tagged blocks and nothing else outside them:
+
+<jd_profile>
+{
+  "company_name": "",
+  "job_title": "",
+  "seniority_level": "",
+  "role_family": "",
+  "industry_or_domain": "",
+  "hard_requirements": ["Python", "use atomic 1-2 word keywords only"],
+  "preferred_requirements": ["Docker", "keep these atomic"],
+  "tools_and_technologies": ["PyTorch", "ROS2", "atomic only"],
+  "core_keywords": ["Computer Vision", "Edge AI", "keep atomic"],
+  "evidence_priorities": ["what hiring team values most"],
+  "synonym_map": { "keyword": ["synonym1", "synonym2"] }
+}
+</jd_profile>
+
+<recruiter_review>
+Write a sharp, candid recruiter-perspective review in markdown with EXACTLY these sections:
+
+### First Impression (6-second scan)
+What does a recruiter see in the first 6 seconds? What's the immediate hook — or the immediate problem?
+
+### Why Shortlist
+2-3 concrete, punchy reasons this candidate should make the cut. Be specific — reference actual content from the CV.
+
+### Why Reject
+1-2 honest concerns or gaps that could get this application binned. Don't soften it.
+
+### Verdict
+One sentence. Shortlist / Maybe / Pass — and why.
+</recruiter_review>
+
+<boost_tips>
+[
+  {
+    "priority": "high|medium|low",
+    "category": "CV Structure|Keywords|Evidence|Profile|Skills|Cover Letter|LinkedIn|Other",
+    "title": "Short actionable title",
+    "body": "Specific, actionable advice. Reference the actual CV content and JD. Tell them exactly what to change and why it matters to a recruiter."
+  }
+]
+</boost_tips>
+
+## Rules
+- No fabrication. Analyse only what is actually in the CV and JD.
+- Be direct. Recruiters are not polite — they are efficient.
+- Boost tips must be SPECIFIC to this candidate's CV and this JD. No generic advice.
+- Synonym map should cover common variations of the JD's key terms.
+- Atomic keywords: 1-2 words max. "Python" not "Proficiency in Python".
+</script>
+
+    <div class="wrapper">
+
+        <header>
+            <div class="eyebrow">Application Intelligence</div>
+            <h1>ATS <br><em>Analyser</em></h1>
+            <p class="subtitle">Upload your CV, paste a job description, and get a recruiter-honest breakdown — ATS
+                match score, keyword gaps, and specific tips to boost your application.</p>
+        </header>
+
+        <!-- Provider -->
+        <div class="provider-row" id="provider-row">
+            <button class="provider-tab active" id="tab-gemini" onclick="setProvider('gemini')">
+                <span>✦</span><span>Gemini</span>
+            </button>
+            <button class="provider-tab" id="tab-openai" onclick="setProvider('openai')">
+                <span>⬡</span><span>OpenAI</span>
+            </button>
+            <button class="provider-tab" id="tab-anthropic" onclick="setProvider('anthropic')">
+                <span>◈</span><span>Anthropic</span>
+            </button>
+        </div>
+
+        <!-- Model + Key -->
+        <div class="model-key-row">
+            <select id="model-select" onchange="saveModel()"></select>
+            <div class="key-wrap">
+                <input type="password" id="api-key" placeholder="API key" />
+                <button class="save-btn" id="save-btn" onclick="saveKey()">Save</button>
+            </div>
+        </div>
+
+        <!-- Files -->
+        <div class="grid-2">
+            <div class="file-card" id="cv-card">
+                <input type="file" id="cv-input" accept=".tex" onchange="loadFile('cv')" />
+                <span class="fc-icon" id="cv-icon">📄</span>
+                <div class="fc-text">
+                    <div class="fc-title" id="cv-title">Upload CV (.tex)</div>
+                    <div class="fc-sub" id="cv-sub">Your LaTeX resume</div>
+                </div>
+                <button class="fc-clear" onclick="clearFile(event,'cv')">✕</button>
+            </div>
+            <div class="file-card" id="cl-card" style="border-style:dashed;opacity:0.7;" title="Optional">
+                <input type="file" id="cl-input" accept=".tex" onchange="loadFile('cl')" />
+                <span class="fc-icon" id="cl-icon">✉</span>
+                <div class="fc-text">
+                    <div class="fc-title" id="cl-title">Cover Letter (.tex) — optional</div>
+                    <div class="fc-sub" id="cl-sub">Analysed together if provided</div>
+                </div>
+                <button class="fc-clear" onclick="clearFile(event,'cl')">✕</button>
+            </div>
+        </div>
+
+        <!-- JD -->
+        <div class="card">
+            <div class="card-header">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span class="fname">job_description.txt</span>
+                <span id="wc">0 words</span>
+            </div>
+            <div class="card-body">
+                <label class="field-label">Job Description <span class="tag">required</span></label>
+                <textarea id="jd" placeholder="Paste the full job description here..."></textarea>
+                <div class="meta-row">
+                    <span id="detected">company &amp; role: not yet detected</span>
+                    <span id="cc">0 chars</span>
+                </div>
+                <div class="run-row" style="margin-top:1rem;">
+                    <button class="primary" id="run-btn" onclick="analyze()">⚡ Analyze</button>
+                    <span class="btn-hint">Calls the AI directly from your browser.<br>No data leaves except to your
+                        chosen provider.</span>
+                </div>
+                <div class="progress-wrap" id="progress-wrap">
+                    <div class="progress-label">
+                        <span id="progress-text">Initializing...</span>
+                        <span id="progress-pct">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="steps">
+                        <div class="step" id="step-meta">
+                            <div class="step-icon">1</div><span>Extracting company &amp; role</span>
+                        </div>
+                        <div class="step" id="step-ai">
+                            <div class="step-icon">2</div><span>AI recruiter analysis</span>
+                        </div>
+                        <div class="step" id="step-score">
+                            <div class="step-icon">3</div><span>Computing ATS match score</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="error-box" id="error-box"></div>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-section" id="results-section">
+
+            <!-- Score panels -->
+            <div class="score-header">
+                <div class="score-panel" id="orig-panel">
+                    <div class="score-panel-label">Original CV Match</div>
+                    <div class="score-number" id="orig-num">—</div>
+                    <div class="score-bar">
+                        <div class="score-fill" id="orig-fill"></div>
+                    </div>
+                    <div class="kw-section">
+                        <div class="kw-header">Matching</div>
+                        <div class="kw-tags" id="orig-match"></div>
+                    </div>
+                    <div class="kw-section" style="margin-top:0.6rem;">
+                        <div class="kw-header">Missing</div>
+                        <div class="kw-tags" id="orig-miss"></div>
+                    </div>
+                    <div class="breakdown-grid" id="orig-breakdown"></div>
+                </div>
+
+                <div class="score-panel tailored" id="tail-panel" style="display:none;">
+                    <div class="score-panel-label">Cover Letter Match</div>
+                    <div class="score-number" id="tail-num">—</div>
+                    <div class="score-bar">
+                        <div class="score-fill" id="tail-fill"
+                            style="background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
+                    </div>
+                    <div class="kw-section">
+                        <div class="kw-header">Matching</div>
+                        <div class="kw-tags" id="tail-match"></div>
+                    </div>
+                    <div class="kw-section" style="margin-top:0.6rem;">
+                        <div class="kw-header">Missing</div>
+                        <div class="kw-tags" id="tail-miss"></div>
+                    </div>
+                    <div class="breakdown-grid" id="tail-breakdown"></div>
+                </div>
+            </div>
+
+            <div class="score-note">
+                Score computed in-browser: hard requirements (30pts), skills coverage (25pts), evidence strength
+                (20pts), role alignment (15pts), format compatibility (10pts). Not a vendor ATS score — a transparent
+                signal of fit.
+            </div>
+
+            <!-- Recruiter Review -->
+            <div class="panel" style="margin-top:0.75rem;">
+                <div class="panel-header">
+                    <div class="ph-dot"></div>Recruiter Review
+                </div>
+                <div class="panel-body">
+                    <div class="md-content" id="recruiter-review"></div>
+                </div>
+            </div>
+
+            <!-- Boost Tips -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="ph-dot"></div>How to Boost Your Profile
+                </div>
+                <div class="panel-body">
+                    <div class="tips-grid" id="tips-grid"></div>
+                </div>
+            </div>
+
+        </div><!-- /results -->
+
+    </div><!-- /wrapper -->
+
+    <script>
+        var PROVIDERS = {
+            gemini: {
+                models: [
+                    { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (best)" },
+                    { id: "gemini-3-flash-preview", label: "Gemini 3.0 Flash (fast)" },
+                    { id: "gemini-flash-lite-latest", label: "Gemini Flash Lite (cheap)" }
+                ],
+                placeholder: "AIza... — Google AI Studio key"
+            },
+            openai: {
+                models: [
+                    { id: "gpt-5.4-2026-03-05", label: "GPT-5.4 (best)" },
+                    { id: "gpt-5.4-mini-2026-03-17", label: "GPT-5.4 mini (fast)" },
+                    { id: "gpt-5.4-nano-2026-03-17", label: "GPT-5.4 nano (fast)" }
+                ],
+                placeholder: "sk-... — OpenAI API key"
+            },
+            anthropic: {
+                models: [
+                    { id: "claude-opus-4-6", label: "Claude Opus 4 (best)" },
+                    { id: "claude-sonnet-4-6", label: "Claude Sonnet 4 (balanced)" },
+                    { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4 (fast)" }
+                ],
+                placeholder: "sk-ant-... — Anthropic API key"
+            }
+        };
+
+        var currentProvider = "gemini";
+        var SYSTEM_PROMPT = document.getElementById("system-prompt").textContent.trim();
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        window.addEventListener("DOMContentLoaded", function () {
+            var saved = localStorage.getItem("ats_provider") || "gemini";
+            setProvider(saved, true);
+            restoreFile("cv"); restoreFile("cl");
+
+            var jdEl = document.getElementById("jd");
+            jdEl.addEventListener("input", function () {
+                var t = jdEl.value.trim();
+                document.getElementById("wc").textContent = (t ? t.split(/\s+/).length : 0) + " words";
+                document.getElementById("cc").textContent = jdEl.value.length + " chars";
+            });
+        });
+
+        // ── Provider ──────────────────────────────────────────────────────────
+        function setProvider(p, silent) {
+            currentProvider = p;
+            if (!silent) localStorage.setItem("ats_provider", p);
+            Object.keys(PROVIDERS).forEach(function (k) {
+                document.getElementById("tab-" + k).classList.toggle("active", k === p);
+            });
+            var sel = document.getElementById("model-select");
+            sel.innerHTML = "";
+            PROVIDERS[p].models.forEach(function (m) {
+                var o = document.createElement("option");
+                o.value = m.id; o.textContent = m.label;
+                sel.appendChild(o);
+            });
+            var savedModel = localStorage.getItem("ats_model_" + p);
+            if (savedModel) sel.value = savedModel;
+            if (!sel.value && sel.options.length) sel.value = sel.options[0].value;
+            var key = localStorage.getItem("ats_key_" + p) || "";
+            document.getElementById("api-key").value = key;
+            document.getElementById("api-key").placeholder = PROVIDERS[p].placeholder;
+            var btn = document.getElementById("save-btn");
+            if (key) { btn.textContent = "✓ Saved"; btn.classList.add("saved"); }
+            else { btn.textContent = "Save"; btn.classList.remove("saved"); }
+        }
+        function saveModel() { localStorage.setItem("ats_model_" + currentProvider, document.getElementById("model-select").value); }
+        function saveKey() {
+            var k = document.getElementById("api-key").value.trim();
+            if (!k) return;
+            localStorage.setItem("ats_key_" + currentProvider, k);
+            var btn = document.getElementById("save-btn");
+            btn.textContent = "✓ Saved"; btn.classList.add("saved");
+        }
+
+        // ── Files ─────────────────────────────────────────────────────────────
+        function loadFile(type) {
+            var f = document.getElementById(type + "-input").files[0];
+            if (!f) return;
+            if (f.name.split(".").pop().toLowerCase() !== "tex") {
+                showError("Only .tex files accepted."); return;
+            }
+            var r = new FileReader();
+            r.onload = function (e) {
+                localStorage.setItem("ats_" + type + "_content", e.target.result);
+                localStorage.setItem("ats_" + type + "_name", f.name);
+                updateCard(type, f.name);
+                if (type === "cl") document.getElementById("cl-card").style.opacity = "1";
+            };
+            r.readAsText(f);
+        }
+        function restoreFile(type) {
+            var n = localStorage.getItem("ats_" + type + "_name");
+            if (n) { updateCard(type, n); if (type === "cl") document.getElementById("cl-card").style.opacity = "1"; }
+        }
+        function clearFile(e, type) {
+            e.preventDefault(); e.stopPropagation();
+            localStorage.removeItem("ats_" + type + "_content");
+            localStorage.removeItem("ats_" + type + "_name");
+            document.getElementById(type + "-card").classList.remove("loaded");
+            document.getElementById(type + "-icon").textContent = type === "cv" ? "📄" : "✉";
+            document.getElementById(type + "-title").textContent = type === "cv" ? "Upload CV (.tex)" : "Cover Letter (.tex) — optional";
+            document.getElementById(type + "-sub").textContent = type === "cv" ? "Your LaTeX resume" : "Analysed together if provided";
+            document.getElementById(type + "-input").value = "";
+            if (type === "cl") document.getElementById("cl-card").style.opacity = "0.7";
+        }
+        function updateCard(type, name) {
+            document.getElementById(type + "-card").classList.add("loaded");
+            document.getElementById(type + "-icon").textContent = "📝";
+            document.getElementById(type + "-title").textContent = "✓ " + name;
+            document.getElementById(type + "-sub").textContent = "LaTeX — ready";
+        }
+
+        // ── Scoring engine ────────────────────────────────────────────────────
+        function normText(t) {
+            return (t || "").toLowerCase()
+                .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?(\{[^}]*\})?/g, " ")
+                .replace(/[^a-z0-9\s+#\-]/g, " ")
+                .replace(/\s+/g, " ").trim();
+        }
+        function uniq(a) { return Array.from(new Set((a || []).filter(Boolean))); }
+
+        function texToText(tex) {
+            return (tex || "")
+                .replace(/%.*$/gm, " ")
+                .replace(/\\item/g, "\n- ")
+                .replace(/\\resumeItem/g, "\n- ")
+                .replace(/\\resumeSubheading/g, "\n")
+                .replace(/\\section\*?\{([^}]*)\}/g, "\n\n$1\n")
+                .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?/g, " ")
+                .replace(/[{}]/g, " ")
+                .replace(/\s+/g, " ").trim();
+        }
+
+        function matchTerms(text, terms, synonymMap) {
+            var t = " " + normText(text) + " ";
+            return uniq((terms || []).filter(function (term) {
+                var candidates = [term].concat((synonymMap || {})[term] || []);
+                return candidates.some(function (c) {
+                    return t.indexOf(" " + normText(c) + " ") !== -1;
+                });
+            }));
+        }
+
+        function scoreCV(tex, jdProfile) {
+            var text = texToText(tex);
+
+            // Hard requirements (30)
+            var hardReqs = jdProfile.hard_requirements || [];
+            var hardMatch = matchTerms(text, hardReqs, jdProfile.synonym_map);
+            var hardMiss = hardReqs.filter(function (r) { return hardMatch.indexOf(r) === -1; });
+            var hardScore = hardReqs.length ? Math.round((hardMatch.length / hardReqs.length) * 30) : 20;
+
+            // Skills (25)
+            var allKw = uniq([].concat(jdProfile.core_keywords || []).concat(jdProfile.tools_and_technologies || []).concat(jdProfile.preferred_requirements || []));
+            var kwMatch = matchTerms(text, allKw, jdProfile.synonym_map);
+            var kwMiss = allKw.filter(function (k) { return kwMatch.indexOf(k) === -1; });
+            var kwScore = allKw.length ? Math.round((kwMatch.length / allKw.length) * 25) : 15;
+
+            // Evidence (20)
+            var hasNums = /\b\d+(\.\d+)?%?\b/.test(text);
+            var hasVerbs = /\b(built|developed|led|automated|optimized|analyzed|designed|implemented|improved|reduced|increased|delivered|deployed|architected|engineered)\b/i.test(text);
+            var hasOutcome = /\b(reduced|increased|improved|saved|delivered|achieved|supporting)\b/i.test(text);
+            var hasTools = /\b(python|sql|pytorch|tensorflow|ros|docker|kubernetes|aws|azure|opencv)\b/i.test(text);
+            var evScore = (hasNums ? 6 : 0) + (hasVerbs ? 5 : 0) + (hasOutcome ? 5 : 0) + (hasTools ? 4 : 0);
+
+            // Role alignment (15)
+            var roleScore = 0;
+            var title = normText(jdProfile.job_title || "");
+            var family = normText(jdProfile.role_family || "");
+            var tNorm = normText(text);
+            if (title && tNorm.indexOf(title) !== -1) roleScore += 5;
+            else if (family && tNorm.indexOf(family) !== -1) roleScore += 4;
+            var epMatch = matchTerms(text, jdProfile.evidence_priorities || [], jdProfile.synonym_map);
+            roleScore += Math.min(epMatch.length, 5);
+            roleScore = Math.min(roleScore + 5, 15);
+
+            // Format (10)
+            var fmtScore = 0;
+            if (/experience|erfahrung/i.test(text)) fmtScore += 2;
+            if (/education|ausbildung|studium/i.test(text)) fmtScore += 2;
+            if (/skills|kenntnisse/i.test(text)) fmtScore += 2;
+            if (/\b\d{4}\b/.test(text)) fmtScore += 2;
+            if (/@|\+?\d[\d\s()-]{6,}/.test(text)) fmtScore += 2;
+
+            var total = hardScore + kwScore + evScore + roleScore + fmtScore;
+
+            return {
+                total: Math.min(total, 100),
+                breakdown: {
+                    "Hard Req.": hardScore + "/30",
+                    "Skills": kwScore + "/25",
+                    "Evidence": Math.min(evScore, 20) + "/20",
+                    "Role Fit": roleScore + "/15",
+                    "Format": fmtScore + "/10"
+                },
+                matched: uniq(hardMatch.concat(kwMatch)),
+                missing: uniq(hardMiss.concat(kwMiss))
+            };
+        }
+
+        // ── UI helpers ────────────────────────────────────────────────────────
+        function setProgress(pct, label) {
+            document.getElementById("progress-fill").style.width = pct + "%";
+            document.getElementById("progress-pct").textContent = pct + "%";
+            if (label) document.getElementById("progress-text").textContent = label;
+        }
+        function setStep(id, state) {
+            var el = document.getElementById(id);
+            el.className = "step " + state;
+            var icon = el.querySelector(".step-icon");
+            if (state === "active") icon.innerHTML = '<div class="spinner-inline"></div>';
+            else if (state === "done") icon.textContent = "✓";
+            else if (state === "error") icon.textContent = "✗";
+        }
+        function showError(msg) {
+            var el = document.getElementById("error-box");
+            el.textContent = msg; el.classList.add("show");
+        }
+        function extractBlock(text, tag) {
+            var re = new RegExp("<" + tag + ">[\\s\\S]*?<\\/" + tag + ">");
+            var m = text.match(re);
+            if (!m) throw new Error("AI did not return a <" + tag + "> block.\n\nResponse start:\n" + text.slice(0, 600));
+            return text.match(new RegExp("<" + tag + ">" + "([\\s\\S]*?)" + "<\\/" + tag + ">"))[1].trim();
+        }
+        // More robust block extractor
+        function getBlock(text, tag) {
+            var start = text.indexOf("<" + tag + ">");
+            var end = text.indexOf("</" + tag + ">");
+            if (start === -1 || end === -1) throw new Error("Missing <" + tag + "> block in AI response.\n\n" + text.slice(0, 600));
+            return text.slice(start + tag.length + 2, end).trim();
+        }
+
+        function renderScore(numEl, fillEl, score, panel) {
+            numEl.textContent = score + "%";
+            var color = score >= 75 ? "var(--green)" : score >= 50 ? "var(--orange)" : "var(--red)";
+            numEl.style.color = color;
+            setTimeout(function () { fillEl.style.width = score + "%"; fillEl.style.background = color; }, 80);
+            if (panel) panel.style.borderColor = score >= 75 ? "rgba(52,211,153,0.3)" : score >= 50 ? "rgba(251,146,60,0.3)" : "rgba(248,113,113,0.3)";
+        }
+
+        function renderKwTags(containerId, keywords, isMiss) {
+            var el = document.getElementById(containerId);
+            if (!keywords || !keywords.length) { el.innerHTML = '<span style="font-size:0.62rem;color:var(--muted);">none</span>'; return; }
+            el.innerHTML = keywords.map(function (k) {
+                return '<span class="kw-tag ' + (isMiss ? "miss" : "match") + '">' + k + '</span>';
+            }).join("");
+        }
+
+        function renderBreakdown(containerId, breakdown) {
+            var el = document.getElementById(containerId);
+            el.innerHTML = Object.keys(breakdown).map(function (k) {
+                return '<div class="breakdown-cell"><div class="breakdown-k">' + k + '</div><div class="breakdown-v">' + breakdown[k] + '</div></div>';
+            }).join("");
+        }
+
+        function renderTips(tips) {
+            var grid = document.getElementById("tips-grid");
+            grid.innerHTML = tips.map(function (t) {
+                return '<div class="tip-card">'
+                    + '<span class="tip-priority ' + t.priority + '">' + t.priority + ' priority</span>'
+                    + '<div class="tip-title">' + t.title + '</div>'
+                    + '<div class="tip-body">' + t.body + '</div>'
+                    + '</div>';
+            }).join("");
+        }
+
+        // ── AI calls ──────────────────────────────────────────────────────────
+        async function callAI(apiKey, model, sys, user) {
+            if (currentProvider === "gemini") return callGemini(apiKey, model, sys, user);
+            if (currentProvider === "openai") return callOpenAI(apiKey, model, sys, user);
+            if (currentProvider === "anthropic") return callAnthropic(apiKey, model, sys, user);
+            throw new Error("Unknown provider");
+        }
+        async function callGemini(key, model, sys, user) {
+            var res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+                body: JSON.stringify({
+                    system_instruction: { parts: [{ text: sys }] },
+                    contents: [{ parts: [{ text: user }] }],
+                    generationConfig: { temperature: 0.2 }
+                })
+            });
+            if (!res.ok) { var e = await res.json(); throw new Error(e.error && e.error.message ? e.error.message : "Gemini HTTP " + res.status); }
+            var d = await res.json(); return d.candidates[0].content.parts[0].text;
+        }
+        async function callOpenAI(key, model, sys, user) {
+            var res = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+                body: JSON.stringify({ model: model, temperature: 0.2, messages: [{ role: "system", content: sys }, { role: "user", content: user }] })
+            });
+            if (!res.ok) { var e = await res.json(); throw new Error(e.error && e.error.message ? e.error.message : "OpenAI HTTP " + res.status); }
+            var d = await res.json(); return d.choices[0].message.content;
+        }
+        async function callAnthropic(key, model, sys, user) {
+            var res = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+                body: JSON.stringify({ model: model, max_tokens: 4096, system: sys, messages: [{ role: "user", content: user }] })
+            });
+            if (!res.ok) { var e = await res.json(); throw new Error(e.error && e.error.message ? e.error.message : "Anthropic HTTP " + res.status); }
+            var d = await res.json(); return d.content[0].text;
+        }
+
+        // ── Main ──────────────────────────────────────────────────────────────
+        async function analyze() {
+            var apiKey = document.getElementById("api-key").value.trim();
+            var model = document.getElementById("model-select").value;
+            var jd = document.getElementById("jd").value.trim();
+            var cvContent = localStorage.getItem("ats_cv_content");
+            var clContent = localStorage.getItem("ats_cl_content");
+
+            if (!apiKey) { showError("Add your API key first."); return; }
+            if (!jd) { showError("Paste a job description first."); return; }
+            if (!cvContent) { showError("Upload your CV (.tex) first."); return; }
+
+            document.getElementById("error-box").classList.remove("show");
+            document.getElementById("results-section").classList.remove("show");
+            document.getElementById("progress-wrap").classList.add("show");
+            document.getElementById("run-btn").disabled = true;
+
+            ["step-meta", "step-ai", "step-score"].forEach(function (id, i) {
+                document.getElementById(id).className = "step";
+                document.getElementById(id).querySelector(".step-icon").textContent = i + 1;
+            });
+
+            try {
+                // Step 1 — meta
+                setStep("step-meta", "active"); setProgress(10, "Extracting company & role...");
+                var metaRes = await callAI(apiKey, model,
+                    "You are a precise extractor. Respond ONLY with the requested XML tags, nothing else.",
+                    "Extract company name and job title.\nRespond with ONLY:\n<company>Name</company>\n<job_title>Title</job_title>\n\n" + jd
+                );
+                var company = getBlock(metaRes, "company");
+                var jobTitle = getBlock(metaRes, "job_title");
+                document.getElementById("detected").textContent = "detected: " + company + " — " + jobTitle;
+                setStep("step-meta", "done");
+
+                // Step 2 — AI analysis
+                setStep("step-ai", "active"); setProgress(30, "Running recruiter analysis...");
+                var userPrompt =
+                    "<job_description>\n" + jd + "\n</job_description>\n\n" +
+                    "<cv format=\"tex\">\n" + cvContent + "\n</cv>\n\n" +
+                    (clContent ? "<cover_letter format=\"tex\">\n" + clContent + "\n</cover_letter>\n\n" : "") +
+                    "Produce your analysis. Return EXACTLY the required tagged blocks.";
+
+                var aiRes = await callAI(apiKey, model, SYSTEM_PROMPT, userPrompt);
+
+                // Parse blocks
+                var jdProfileRaw = getBlock(aiRes, "jd_profile");
+                var recruiterReviewMd = getBlock(aiRes, "recruiter_review");
+                var tipsRaw = getBlock(aiRes, "boost_tips");
+
+                var jdProfile;
+                try {
+                    jdProfile = JSON.parse(jdProfileRaw.replace(/^```(json)?\s*/gm, "").replace(/```$/gm, "").trim());
+                } catch (e) {
+                    throw new Error("Invalid JD profile JSON:\n" + jdProfileRaw.slice(0, 400));
+                }
+
+                var tips;
+                try {
+                    tips = JSON.parse(tipsRaw.replace(/^```(json)?\s*/gm, "").replace(/```$/gm, "").trim());
+                } catch (e) {
+                    throw new Error("Invalid boost tips JSON:\n" + tipsRaw.slice(0, 400));
+                }
+
+                setStep("step-ai", "done");
+
+                // Step 3 — Score
+                setStep("step-score", "active"); setProgress(80, "Computing scores...");
+                var cvScore = scoreCV(cvContent, jdProfile);
+                var clScore = clContent ? scoreCV(clContent, jdProfile) : null;
+
+                // Render
+                renderScore(
+                    document.getElementById("orig-num"),
+                    document.getElementById("orig-fill"),
+                    cvScore.total,
+                    document.getElementById("orig-panel")
+                );
+                renderKwTags("orig-match", cvScore.matched, false);
+                renderKwTags("orig-miss", cvScore.missing, true);
+                renderBreakdown("orig-breakdown", cvScore.breakdown);
+
+                if (clScore) {
+                    document.getElementById("tail-panel").style.display = "block";
+                    renderScore(
+                        document.getElementById("tail-num"),
+                        document.getElementById("tail-fill"),
+                        clScore.total,
+                        null
+                    );
+                    renderKwTags("tail-match", clScore.matched, false);
+                    renderKwTags("tail-miss", clScore.missing, true);
+                    renderBreakdown("tail-breakdown", clScore.breakdown);
+                }
+
+                if (typeof marked !== "undefined") {
+                    document.getElementById("recruiter-review").innerHTML = marked.parse(recruiterReviewMd);
+                } else {
+                    document.getElementById("recruiter-review").textContent = recruiterReviewMd;
+                }
+
+                renderTips(tips);
+
+                setStep("step-score", "done");
+                setProgress(100, "Done.");
+
+                document.getElementById("results-section").classList.add("show");
+                document.getElementById("results-section").scrollIntoView({ behavior: "smooth", block: "start" });
+
+            } catch (e) {
+                showError(e.message);
+                ["step-meta", "step-ai", "step-score"].forEach(function (id) {
+                    if (document.getElementById(id).classList.contains("active")) setStep(id, "error");
+                });
+            } finally {
+                document.getElementById("run-btn").disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

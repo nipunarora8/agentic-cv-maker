@@ -897,6 +897,65 @@
             text-align: left;
         }
 
+        /* ── ATS Analyzer nav ── */
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 0;
+            margin-top: -1rem;
+        }
+
+        .nav-tool-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            padding: 0.45rem 0.95rem;
+            background: transparent;
+            border: 1px solid rgba(200, 241, 53, 0.3);
+            color: var(--accent);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+
+        .nav-tool-btn:hover {
+            border-color: #7b6ef6;
+            color: #7b6ef6;
+        }
+
+        /* .nav-tool-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            padding: 0.45rem 0.95rem;
+            background: transparent;
+            border: 1px solid var(--border-bright);
+            color: var(--muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+
+        .nav-tool-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        } */
+
+        .nav-tool-btn::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
         @media (max-width: 820px) {
             .breakdown-grid {
                 grid-template-columns: 1fr 1fr;
@@ -1128,7 +1187,12 @@ Respond with EXACTLY seven tagged blocks and nothing else outside them.
         </header>
 
         <div class="provider-section">
-            <div class="slabel">AI Provider</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.55rem;">
+                <div class="slabel" style="margin-bottom:0;">AI Provider</div>
+                <a class="nav-tool-btn" href="ats_analyzer.html" target="_blank">ATS Analyzer
+                    &#8599;</a>
+            </div>
+
             <div class="provider-tabs">
                 <button class="provider-tab active" id="tab-gemini" onclick="setProvider('gemini')">
                     <span class="tab-icon">✦</span>
